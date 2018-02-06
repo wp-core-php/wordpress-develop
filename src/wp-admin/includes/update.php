@@ -809,3 +809,56 @@ function wp_print_update_row_templates() {
 	</script>
 	<?php
 }
+
+/**
+ * Outputs an admin notice to inform the user of an unsupported PHP version in use.
+ *
+ * @since 4.9.4
+ */
+function wp_upgrade_php_notice() {
+	if ( ! current_user_can( 'upgrade_php' ) ) {
+		return;
+	}
+
+	if ( version_compare( phpversion(), '5.3.0', '>=' ) ) {
+		return;
+	}
+
+	$information_url = __( 'https://wordpress.org/support/upgrade-php/' );
+
+	?>
+	<div class="notice-upgrade notice notice-error is-dismissible">
+		<h2><?php _e( 'Your site could be faster and more secure!' ); ?></h2>
+
+		<p><?php _e( 'Hi, it&apos;s your friends at WordPress here. We noticed that your site is running on an outdated version of PHP, which is why we&apos;re showing you this notice.' ); ?></p>
+
+		<div class="notice-upgrade-column-container">
+
+			<div class="notice-upgrade-column">
+				<h3><?php _e( 'What is PHP and why should I care?' ); ?></h3>
+
+				<p><?php _e( 'PHP is the programming language that WordPress is built on. Newer versions of PHP are both faster and more secure, so upgrading is better for your site, and better for the people who are building WordPress.' ); ?></p>
+
+				<p><?php _e( 'If you want to know exactly how PHP works and why it is important, continue reading.' ); ?></p>
+			</div>
+
+			<div class="notice-upgrade-column">
+				<h3><?php _e( 'Okay, how do I update?' ); ?></h3>
+
+				<p><?php _e( 'The button below will take you to a page with more details on what PHP is, how to upgrade your PHP version, and what to do if it turns out you can&apos;t.' ); ?></p>
+
+				<p><a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Show me how to upgrade my PHP' ); ?></a></p>
+			</div>
+
+			<div class="notice-upgrade-column">
+				<h3><?php _e( 'Thank you for taking the time to read this!' ); ?></h3>
+
+				<p><?php _e( 'If you follow the instructions we&apos;ve provided to the letter, upgrading shouldn&apos;t take more than a few minutes, and it is generally very safe to do.' ); ?></p>
+
+				<p><?php _e( 'Good luck and happy blogging!' ); ?></p>
+			</div>
+
+		</div>
+	</div>
+	<?php
+}
