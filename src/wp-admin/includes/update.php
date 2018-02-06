@@ -826,7 +826,9 @@ function wp_should_display_upgrade_php_notice() {
 		return false;
 	}
 
-	return true;
+	$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+
+	return ! in_array( 'upgrade_php_notice', $dismissed_pointers, true );
 }
 
 /**
@@ -842,7 +844,7 @@ function wp_upgrade_php_notice() {
 	$information_url = __( 'https://wordpress.org/support/upgrade-php/' );
 
 	?>
-	<div class="notice-upgrade notice notice-error is-dismissible">
+	<div id="upgrade-php-notice" class="notice-upgrade notice notice-error is-dismissible">
 		<h2><?php _e( 'Your site could be faster and more secure!' ); ?></h2>
 
 		<p><?php _e( 'Hi, it&apos;s your friends at WordPress here. We noticed that your site is running on an outdated version of PHP, which is why we&apos;re showing you this notice.' ); ?></p>
@@ -876,4 +878,20 @@ function wp_upgrade_php_notice() {
 		</div>
 	</div>
 	<?php
+
+	// The following ensures dismissing the notice permanently dismisses it for the current user.
+	$script = <<<JS
+	document.getElementById( 'upgrade-php-notice' ).addEventListener( 'click', function( event ) {
+		if ( ! event.target.classList.contains( 'notice-dismiss' ) ) {
+			return;
+		}
+
+		wp.ajax.post( 'dismiss-wp-pointer', {
+			pointer: 'upgrade_php_notice'
+		});
+	});
+JS;
+
+	wp_enqueue_script( 'wp-util' );
+	wp_add_inline_script( 'wp-util', $script );
 }
