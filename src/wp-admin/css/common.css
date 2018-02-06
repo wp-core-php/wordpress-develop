@@ -1605,6 +1605,31 @@ form.upgrade .hint {
 	}
 }
 
+.notice-upgrade-column-container {
+	display: -webkit-box;
+	display: flex;
+	-webkit-box-align: start;
+	align-items: flex-start;
+	-webkit-box-pack: justify;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	flex-flow: row wrap;
+}
+
+.notice-upgrade-column-container .notice-upgrade-column {
+	padding: 0 1em 1em 0;
+	flex-basis: 300px;
+	-webkit-box-flex: 1;
+	flex-grow: 1;
+}
+
+.wp-core-ui .button.button-hero.notice-upgrade-button {
+	display: block;
+	text-align: center;
+}
+
 
 /* @todo: this does not need its own section anymore */
 /*------------------------------------------------------------------------------
