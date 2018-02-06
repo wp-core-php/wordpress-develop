@@ -6075,3 +6075,28 @@ All at ###SITENAME###
 		), $email_change_email['message'], $email_change_email['headers']
 	);
 }
+
+/**
+ * Determines whether the currently active PHP version is outdated.
+ *
+ * The result of this function is not necessarily tied to whether the PHP version
+ * is actually no longer supported.
+ *
+ * @since 4.9.4
+ *
+ * @return bool True if the PHP version is outdated, false otherwise.
+ */
+function wp_is_php_version_outdated() {
+	$version  = phpversion();
+	$outdated = version_compare( $version, '5.3.0', '<' );
+
+	/**
+	 * Filters whether the currently active PHP version is outdated.
+	 *
+	 * @since 4.9.4
+	 *
+	 * @param bool $outdated  Whether the PHP version is outdated.
+	 * @param string $version Currently active PHP version.
+	 */
+	return apply_filters( 'wp_is_php_version_outdated', $outdated, $version );
+}

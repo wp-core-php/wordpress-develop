@@ -811,16 +811,31 @@ function wp_print_update_row_templates() {
 }
 
 /**
+ * Determines whether to display an admin notice to inform the user of an unsupported PHP version in use.
+ *
+ * @since 4.9.4
+ *
+ * @return bool True if the notice should be displayed, false otherwise.
+ */
+function wp_should_display_upgrade_php_notice() {
+	if ( ! wp_is_php_version_outdated() ) {
+		return false;
+	}
+
+	if ( ! current_user_can( 'upgrade_php' ) ) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * Outputs an admin notice to inform the user of an unsupported PHP version in use.
  *
  * @since 4.9.4
  */
 function wp_upgrade_php_notice() {
-	if ( ! current_user_can( 'upgrade_php' ) ) {
-		return;
-	}
-
-	if ( version_compare( phpversion(), '5.3.0', '>=' ) ) {
+	if ( ! wp_should_display_upgrade_php_notice() ) {
 		return;
 	}
 
