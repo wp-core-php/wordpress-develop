@@ -6079,7 +6079,7 @@ All at ###SITENAME###
 /**
  * Checks whether a given PHP version requirement is met.
  *
- * @since 4.9.5
+ * @since 5.0.0
  *
  * @param string $requirement Required PHP version to check against.
  * @return bool True if the detected PHP version meets the given requirement, false otherwise.
@@ -6091,7 +6091,7 @@ function wp_satisfies_php_version( $requirement ) {
 	 * The phpversion() function is used by default. This can be tweaked to account
 	 * for exotic setups.
 	 *
-	 * @since 4.9.5
+	 * @since 5.0.0
 	 *
 	 * @param string $version Detected PHP version.
 	 */
@@ -6106,7 +6106,7 @@ function wp_satisfies_php_version( $requirement ) {
  * The result of this function is not necessarily tied to whether the PHP version
  * is actually no longer supported.
  *
- * @since 4.9.5
+ * @since 5.0.0
  *
  * @return bool True if the PHP version is outdated, false otherwise.
  */
@@ -6116,7 +6116,7 @@ function wp_is_php_version_outdated() {
 	/**
 	 * Filters whether the currently active PHP version is outdated.
 	 *
-	 * @since 4.9.5
+	 * @since 5.0.0
 	 *
 	 * @param bool $outdated Whether the PHP version is outdated.
 	 */

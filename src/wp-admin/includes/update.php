@@ -813,7 +813,7 @@ function wp_print_update_row_templates() {
 /**
  * Determines whether to display an admin notice to inform the user of an unsupported PHP version in use.
  *
- * @since 4.9.5
+ * @since 5.0.0
  *
  * @return bool True if the notice should be displayed, false otherwise.
  */
@@ -834,7 +834,7 @@ function wp_should_display_upgrade_php_notice() {
 /**
  * Outputs an admin notice to inform the user of an unsupported PHP version in use.
  *
- * @since 4.9.5
+ * @since 5.0.0
  */
 function wp_upgrade_php_notice() {
 	if ( ! wp_should_display_upgrade_php_notice() ) {
