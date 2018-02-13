@@ -1636,7 +1636,12 @@ function wp_dashboard_php_nag() {
 
 	<h3><?php _e( 'Okay, how do I update?' ); ?></h3>
 	<p><?php _e( 'The button below will take you to a page with more details on what PHP is, how to upgrade your PHP version, and what to do if it turns out you can&apos;t.' ); ?></p>
-	<p><a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Show me how to upgrade my PHP' ); ?></a></p>
+	<p class="notice-upgrade-button-wrap">
+		<a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Learn more about upgrading PHP' ); ?></a>
+		<?php if ( ! empty( $response['update_url'] ) ) : ?>
+			<a href="<?php echo esc_url( $response['update_url'] ); ?>"><?php _e( 'or upgrade right away' ); ?></a>
+		<?php endif; ?>
+	</p>
 
 	<h3><?php _e( 'Thank you for taking the time to read this!' ); ?></h3>
 	<p><?php _e( 'If you follow the instructions we&apos;ve provided to the letter, upgrading shouldn&apos;t take more than a few minutes, and it is generally very safe to do.' ); ?></p>

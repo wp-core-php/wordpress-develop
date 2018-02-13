@@ -1125,8 +1125,13 @@ a.rsswidget {
 	font-weight: 600;
 }
 
+#dashboard_php_nag .notice-upgrade-button-wrap {
+	text-align: center;
+}
+
 #dashboard_php_nag .button.button-hero.notice-upgrade-button {
 	display: block;
+	margin-bottom: 1em;
 	text-align: center;
 }
 
