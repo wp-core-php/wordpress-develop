@@ -35,6 +35,13 @@ function wp_dashboard_setup() {
 		}
 	}
 
+	// PHP Version
+	$response = wp_check_php_version();
+	if ( $response && $response['upgrade'] && current_user_can( 'upgrade_php' ) ) {
+		$title = $response['insecure'] ? __( 'Your site could be much faster and more secure!' ) : __( 'Your site could be much faster!' );
+		wp_add_dashboard_widget( 'dashboard_php_nag', $title, 'wp_dashboard_php_nag' );
+	}
+
 	// Right Now
 	if ( is_blog_admin() && current_user_can( 'edit_posts' ) ) {
 		wp_add_dashboard_widget( 'dashboard_right_now', __( 'At a Glance' ), 'wp_dashboard_right_now' );
@@ -1594,6 +1601,83 @@ function wp_check_browser_version() {
 		}
 
 		set_site_transient( 'browser_' . $key, $response, WEEK_IN_SECONDS );
+	}
+
+	return $response;
+}
+
+/**
+ * Displays the PHP upgrade nag.
+ *
+ * @since 5.0.0
+ */
+function wp_dashboard_php_nag() {
+	$response = wp_check_php_version();
+
+	if ( ! $response ) {
+		return;
+	}
+
+	$information_url = __( 'https://wordpress.org/support/upgrade-php/' );
+
+	$msg = __( 'Hi, it&apos;s your friends at WordPress here.' );
+	if ( $response['insecure'] ) {
+		$msg .= ' ' . __( 'We noticed that your site is running on an insecure version of PHP, which is why we&apos;re showing you this notice.' );
+	} else {
+		$msg .= ' ' . __( 'We noticed that your site is running on an outdated version of PHP, which is why we&apos;re showing you this notice.' );
+	}
+
+	?>
+	<p><?php echo $msg; ?></p>
+
+	<h3><?php _e( 'What is PHP and why should I care?' ); ?></h3>
+	<p><?php _e( 'PHP is the programming language that WordPress is built on. Newer versions of PHP are both faster and more secure, so upgrading is better for your site, and better for the people who are building WordPress.' ); ?></p>
+	<p><?php _e( 'If you want to know exactly how PHP works and why it is important, continue reading.' ); ?></p>
+
+	<h3><?php _e( 'Okay, how do I update?' ); ?></h3>
+	<p><?php _e( 'The button below will take you to a page with more details on what PHP is, how to upgrade your PHP version, and what to do if it turns out you can&apos;t.' ); ?></p>
+	<p><a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Show me how to upgrade my PHP' ); ?></a></p>
+
+	<h3><?php _e( 'Thank you for taking the time to read this!' ); ?></h3>
+	<p><?php _e( 'If you follow the instructions we&apos;ve provided to the letter, upgrading shouldn&apos;t take more than a few minutes, and it is generally very safe to do.' ); ?></p>
+	<p><?php _e( 'Good luck and happy blogging!' ); ?></p>
+	<?php
+}
+
+/**
+ * Checks if the user needs to upgrade PHP.
+ *
+ * @since 5.0.0
+ *
+ * @return array Array of PHP version data.
+ */
+function wp_check_php_version() {
+	$version = phpversion();
+	$key     = md5( $version );
+
+	$response = get_site_transient( 'php_check_' . $key );
+	if ( false === $response ) {
+		// Instead of hard-coding information here, this could be an API request to http://api.wordpress.org/core/serve-happy/.
+		$response = array(
+			'name'            => 'PHP',
+			'version'         => $version,
+			'current_version' => '7.2.1',
+			'upgrade'         => false,
+			'insecure'        => false,
+			'update_url'      => '', // This could contain a host-specific upgrade link.
+		);
+
+		// This version would actually be 7.0, but we start slowly for now.
+		if ( version_compare( $version, '5.3.0', '<' ) ) {
+			$response['upgrade'] = true;
+		}
+
+		// PHP 5.6 is the oldest version that still receives security updates.
+		if ( version_compare( $version, '5.6.0', '<' ) ) {
+			$response['insecure'] = true;
+		}
+
+		set_site_transient( 'php_check_' . $key, $response, WEEK_IN_SECONDS );
 	}
 
 	return $response;
