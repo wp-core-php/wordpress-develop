@@ -37,8 +37,8 @@ function wp_dashboard_setup() {
 
 	// PHP Version
 	$response = wp_check_php_version();
-	if ( $response && $response['upgrade'] && current_user_can( 'upgrade_php' ) ) {
-		$title = $response['insecure'] ? __( 'Your site could be much faster and more secure!' ) : __( 'Your site could be much faster!' );
+	if ( $response && $response['out_of_date'] && current_user_can( 'upgrade_php' ) ) {
+		$title = ! $response['receiving_security_updates'] ? __( 'Your site could be much faster and more secure!' ) : __( 'Your site could be much faster!' );
 		wp_add_dashboard_widget( 'dashboard_php_nag', $title, 'wp_dashboard_php_nag' );
 	}
 
@@ -1618,10 +1618,10 @@ function wp_dashboard_php_nag() {
 		return;
 	}
 
-	$information_url = __( 'https://wordpress.org/support/upgrade-php/' );
+	$information_url = _x( 'https://wordpress.org/support/upgrade-php/', 'localized PHP upgrade information page' );
 
 	$msg = __( 'Hi, it&apos;s your friends at WordPress here.' );
-	if ( $response['insecure'] ) {
+	if ( ! $response['receiving_security_updates'] ) {
 		$msg .= ' ' . __( 'We noticed that your site is running on an insecure version of PHP, which is why we&apos;re showing you this notice.' );
 	} else {
 		$msg .= ' ' . __( 'We noticed that your site is running on an outdated version of PHP, which is why we&apos;re showing you this notice.' );
@@ -1637,9 +1637,11 @@ function wp_dashboard_php_nag() {
 	<h3><?php _e( 'Okay, how do I update?' ); ?></h3>
 	<p><?php _e( 'The button below will take you to a page with more details on what PHP is, how to upgrade your PHP version, and what to do if it turns out you can&apos;t.' ); ?></p>
 	<p class="notice-upgrade-button-wrap">
-		<a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Learn more about upgrading PHP' ); ?></a>
 		<?php if ( ! empty( $response['update_url'] ) ) : ?>
+			<a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Learn more about upgrading PHP' ); ?></a>
 			<a href="<?php echo esc_url( $response['update_url'] ); ?>"><?php _e( 'or upgrade right away' ); ?></a>
+		<?php else : ?>
+			<a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Show me how to upgrade my PHP' ); ?></a>
 		<?php endif; ?>
 	</p>
 
@@ -1662,24 +1664,33 @@ function wp_check_php_version() {
 
 	$response = get_site_transient( 'php_check_' . $key );
 	if ( false === $response ) {
-		// Instead of hard-coding information here, this could be an API request to http://api.wordpress.org/core/serve-happy/.
-		$response = array(
-			'name'            => 'PHP',
-			'version'         => $version,
-			'current_version' => '7.2.1',
-			'upgrade'         => false,
-			'insecure'        => false,
-			'update_url'      => '', // This could contain a host-specific upgrade link.
-		);
-
-		// This version would actually be 7.0, but we start slowly for now.
-		if ( version_compare( $version, '5.3.0', '<' ) ) {
-			$response['upgrade'] = true;
+		$url = 'http://api.wordpress.org/core/serve-happy/1.0/';
+		if ( wp_http_supports( array( 'ssl' ) ) ) {
+			$url = set_url_scheme( $url, 'https' );
 		}
 
-		// PHP 5.6 is the oldest version that still receives security updates.
-		if ( version_compare( $version, '5.6.0', '<' ) ) {
-			$response['insecure'] = true;
+		$url = add_query_arg( 'php_version', $version, $url );
+
+		$response = wp_remote_get( $url );
+
+		if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
+			return false;
+		}
+
+		/**
+		 * Response should be an array with:
+		 *  'php_version' - string - The PHP version the site is using
+		 *  'recommended_php' - string - The PHP version recommended by WordPress
+		 *  'secure_php' - string - The minimum PHP version considered secure
+		 *  'status' - string - Either 'ok', 'out_of_date' or 'no_security_updates'
+		 *  'update_url' - string - Provider-specific URL if available, or empty string
+		 *  'out_of_date' - boolean - Whether the PHP version needs to be upgraded
+		 *  'receiving_security_updates' - boolean - Whether the PHP version receives security updates
+		 */
+		$response = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( ! is_array( $response ) ) {
+			return false;
 		}
 
 		set_site_transient( 'php_check_' . $key, $response, WEEK_IN_SECONDS );
