@@ -71,6 +71,9 @@ add_filter( 'heartbeat_settings', 'wp_heartbeat_set_suspension' );
 // Nav Menu hooks.
 add_action( 'admin_head-nav-menus.php', '_wp_delete_orphaned_draft_menu_items' );
 
+// Notices hooks.
+add_action( 'admin_notices', 'wp_upgrade_php_notice' );
+
 // Plugin hooks.
 add_filter( 'whitelist_options', 'option_update_filter' );
 

@@ -34,6 +34,7 @@ add_filter( 'import_allow_create_users', 'check_import_new_users' );
 // Notices Hooks
 add_action( 'admin_notices', 'site_admin_notice' );
 add_action( 'network_admin_notices', 'site_admin_notice' );
+add_action( 'network_admin_notices', 'wp_upgrade_php_notice' );
 
 // Update Hooks
 add_action( 'network_admin_notices', 'update_nag', 3 );

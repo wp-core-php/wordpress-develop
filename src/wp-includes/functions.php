@@ -6084,3 +6084,50 @@ All at ###SITENAME###
 		), $email_change_email['message'], $email_change_email['headers']
 	);
 }
+
+/**
+ * Checks whether a given PHP version requirement is met.
+ *
+ * @since 5.0.0
+ *
+ * @param string $requirement Required PHP version to check against.
+ * @return bool True if the detected PHP version meets the given requirement, false otherwise.
+ */
+function wp_satisfies_php_version( $requirement ) {
+	/**
+	 * Filters the detected PHP version.
+	 *
+	 * The phpversion() function is used by default. This can be tweaked to account
+	 * for exotic setups.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param string $version Detected PHP version.
+	 */
+	$version = apply_filters( 'wp_detected_php_version', phpversion() );
+
+	return version_compare( $version, $requirement, '>=' );
+}
+
+/**
+ * Determines whether the currently active PHP version is considered outdated.
+ *
+ * The result of this function is not necessarily tied to whether the PHP version
+ * is actually no longer supported.
+ *
+ * @since 5.0.0
+ *
+ * @return bool True if the PHP version is outdated, false otherwise.
+ */
+function wp_is_php_version_outdated() {
+	$outdated = ! wp_satisfies_php_version( '5.3.0' );
+
+	/**
+	 * Filters whether the currently active PHP version is outdated.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool $outdated Whether the PHP version is outdated.
+	 */
+	return apply_filters( 'wp_is_php_version_outdated', $outdated );
+}
