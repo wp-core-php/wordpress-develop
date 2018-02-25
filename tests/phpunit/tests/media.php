@@ -2386,11 +2386,15 @@ EOF;
 
 		$url = wp_get_attachment_url( $post_id );
 
+		$uploads_dir = wp_upload_dir( '2010/01' );
+
+		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
+
 		// Clean up.
 		wp_delete_attachment( $post_id );
 		wp_delete_post( $parent_id );
 
-		$this->assertSame( 'http://example.org/wp-content/uploads/2010/01/test-image-iptc.jpg', $url );
+		$this->assertSame( $expected, $url );
 	}
 
 	/**
@@ -2433,13 +2437,13 @@ EOF;
 
 		$uploads_dir = wp_upload_dir( current_time( 'mysql' ) );
 
-		$expected = $uploads_dir['url'] . 'test-image-iptc.jpg';
+		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
 		wp_delete_attachment( $post_id );
 		wp_delete_post( $parent_id );
 
-		$this->assertNotEquals( $expected, $url );
+		$this->assertSame( $expected, $url );
 	}
 }
 
