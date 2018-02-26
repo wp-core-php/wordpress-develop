@@ -1619,6 +1619,18 @@ function wp_dashboard_php_nag() {
 	}
 
 	$information_url = _x( 'https://wordpress.org/support/upgrade-php/', 'localized PHP upgrade information page' );
+	$update_url      = $response['update_url'];
+
+	/**
+	 * Filters the URL to environment-specific instructions on how to upgrade the PHP version.
+	 *
+	 * This can also be an empty string, if no such URL is available.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param string $update_url PHP version upgrade URL.
+	 */
+	$update_url = apply_filters( 'php_update_url', $update_url );
 
 	$msg = __( 'Hi, it&apos;s your friends at WordPress here.' );
 	if ( ! $response['receiving_security_updates'] ) {
@@ -1637,9 +1649,9 @@ function wp_dashboard_php_nag() {
 	<h3><?php _e( 'Okay, how do I update?' ); ?></h3>
 	<p><?php _e( 'The button below will take you to a page with more details on what PHP is, how to upgrade your PHP version, and what to do if it turns out you can&apos;t.' ); ?></p>
 	<p class="notice-upgrade-button-wrap">
-		<?php if ( ! empty( $response['update_url'] ) ) : ?>
+		<?php if ( ! empty( $update_url ) ) : ?>
 			<a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Learn more about upgrading PHP' ); ?></a>
-			<a href="<?php echo esc_url( $response['update_url'] ); ?>"><?php _e( 'or upgrade right away' ); ?></a>
+			<a href="<?php echo esc_url( $update_url ); ?>"><?php _e( 'or upgrade right away' ); ?></a>
 		<?php else : ?>
 			<a class="notice-upgrade-button button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Show me how to upgrade my PHP' ); ?></a>
 		<?php endif; ?>
