@@ -37,8 +37,8 @@ function wp_dashboard_setup() {
 
 	// PHP Version
 	$response = wp_check_php_version();
-	if ( $response && $response['out_of_date'] && current_user_can( 'upgrade_php' ) ) {
-		$title = ! $response['receiving_security_updates'] ? __( 'Your site could be much faster and more secure!' ) : __( 'Your site could be much faster!' );
+	if ( $response && ! $response['is_acceptable'] && current_user_can( 'upgrade_php' ) ) {
+		$title = ! $response['is_secure'] ? __( 'Your site could be much faster and more secure!' ) : __( 'Your site could be much faster!' );
 		wp_add_dashboard_widget( 'dashboard_php_nag', $title, 'wp_dashboard_php_nag' );
 	}
 
@@ -1619,21 +1619,20 @@ function wp_dashboard_php_nag() {
 	}
 
 	$information_url = _x( 'https://wordpress.org/support/upgrade-php/', 'localized PHP upgrade information page' );
-	$update_url      = $response['update_url'];
 
 	/**
 	 * Filters the URL to environment-specific instructions on how to upgrade the PHP version.
 	 *
-	 * This can also be an empty string, if no such URL is available.
+	 * By default, no such URL is provided.
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string $update_url PHP version upgrade URL.
+	 * @param string $update_url PHP version upgrade URL. Default empty string.
 	 */
-	$update_url = apply_filters( 'php_update_url', $update_url );
+	$update_url = apply_filters( 'php_update_url', '' );
 
 	$msg = __( 'Hi, it&apos;s your friends at WordPress here.' );
-	if ( ! $response['receiving_security_updates'] ) {
+	if ( ! $response['is_secure'] ) {
 		$msg .= ' ' . __( 'We noticed that your site is running on an insecure version of PHP, which is why we&apos;re showing you this notice.' );
 	} else {
 		$msg .= ' ' . __( 'We noticed that your site is running on an outdated version of PHP, which is why we&apos;re showing you this notice.' );
@@ -1691,13 +1690,10 @@ function wp_check_php_version() {
 
 		/**
 		 * Response should be an array with:
-		 *  'php_version' - string - The PHP version the site is using
-		 *  'recommended_php' - string - The PHP version recommended by WordPress
-		 *  'secure_php' - string - The minimum PHP version considered secure
-		 *  'status' - string - Either 'ok', 'out_of_date' or 'no_security_updates'
-		 *  'update_url' - string - Provider-specific URL if available, or empty string
-		 *  'out_of_date' - boolean - Whether the PHP version needs to be upgraded
-		 *  'receiving_security_updates' - boolean - Whether the PHP version receives security updates
+		 *  'recommended_version' - string - The PHP version recommended by WordPress
+		 *  'is_supported' - boolean - Whether the PHP version is actively supported
+		 *  'is_secure' - boolean - Whether the PHP version receives security updates
+		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable for WordPress
 		 */
 		$response = json_decode( wp_remote_retrieve_body( $response ), true );
 
