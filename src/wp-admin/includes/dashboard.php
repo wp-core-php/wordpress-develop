@@ -185,8 +185,10 @@ function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_
 		$location = 'side';
 	}
 
+	$high_priority_widgets = array( 'dashboard_browser_nag', 'dashboard_php_nag' );
+
 	$priority = 'core';
-	if ( 'dashboard_browser_nag' === $widget_id ) {
+	if ( in_array( $widget_id, $high_priority_widgets, true ) ) {
 		$priority = 'high';
 	}
 
