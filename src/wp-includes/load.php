@@ -1510,7 +1510,7 @@ function wp_shutdown_handler_wrapper() {
 			$message = apply_filters( 'wp_technical_issues_display', $message );
 		}
 
-		wp_die( $message );
+		wp_die( $message, '', 500 );
 	} catch ( Exception $exception ) {
 		// Catch exceptions and remain silent.
 	}
