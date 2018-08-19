@@ -509,7 +509,7 @@ function is_plugin_inactive( $plugin ) {
  * @since 5.0.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return bool True, if in the active plugins list. False, not in the list.
+ * @return bool True, if in the list of paused plugins. False, not in the list.
  */
 function is_plugin_paused( $plugin ) {
 	if ( ! isset( $GLOBALS['_paused_plugins'] ) ) {
