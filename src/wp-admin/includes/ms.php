@@ -56,6 +56,7 @@ function check_upload_size( $file ) {
  * Delete a site.
  *
  * @since 3.0.0
+ * @since 5.0.0 Use wp_delete_site() internally to delete the site row from the database.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -142,7 +143,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 			}
 		}
 
-		$wpdb->delete( $wpdb->blogs, array( 'blog_id' => $blog_id ) );
+		wp_delete_site( $blog_id );
 
 		/**
 		 * Filters the upload base directory to delete when the site is deleted.
@@ -960,11 +961,11 @@ function can_edit_network( $network_id ) {
  * @access private
  */
 function _thickbox_path_admin_subfolder() {
-?>
+	?>
 <script type="text/javascript">
 var tb_pathToImage = "<?php echo includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ); ?>";
 </script>
-<?php
+	<?php
 }
 
 /**
@@ -1064,7 +1065,7 @@ function confirm_delete_users( $users ) {
 				<td><fieldset><p><legend><?php _e( 'User has no sites or content and will be deleted.' ); ?></legend></p>
 			<?php } ?>
 			</tr>
-		<?php
+			<?php
 		}
 	}
 
@@ -1075,7 +1076,7 @@ function confirm_delete_users( $users ) {
 	do_action( 'delete_user_form', $current_user, $allusers );
 
 	if ( 1 == count( $users ) ) :
-	?>
+		?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, these users will be permanently removed.' ); ?></p>
@@ -1083,7 +1084,7 @@ function confirm_delete_users( $users ) {
 	endif;
 
 	submit_button( __( 'Confirm Deletion' ), 'primary' );
-	?>
+?>
 	</form>
 	<?php
 	return true;
@@ -1095,7 +1096,7 @@ function confirm_delete_users( $users ) {
  * @since 4.1.0
  */
 function network_settings_add_js() {
-?>
+	?>
 <script type="text/javascript">
 jQuery(document).ready( function($) {
 	var languageSelect = $( '#WPLANG' );
@@ -1108,7 +1109,7 @@ jQuery(document).ready( function($) {
 	});
 });
 </script>
-<?php
+	<?php
 }
 
 /**
@@ -1146,7 +1147,8 @@ function network_edit_site_nav( $args = array() ) {
 	 * }
 	 */
 	$links = apply_filters(
-		'network_edit_site_nav_links', array(
+		'network_edit_site_nav_links',
+		array(
 			'site-info'     => array(
 				'label' => __( 'Info' ),
 				'url'   => 'site-info.php',
@@ -1172,7 +1174,8 @@ function network_edit_site_nav( $args = array() ) {
 
 	// Parse arguments
 	$r = wp_parse_args(
-		$args, array(
+		$args,
+		array(
 			'blog_id'  => isset( $_GET['blog_id'] ) ? (int) $_GET['blog_id'] : 0,
 			'links'    => $links,
 			'selected' => 'site-info',
