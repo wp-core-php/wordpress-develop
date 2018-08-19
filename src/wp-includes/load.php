@@ -693,7 +693,8 @@ function wp_get_active_and_valid_plugins() {
 	 * login screen and the plugin appears in the `pause_on_admin` list.
 	 */
 	if ( 'wp-login.php' === $GLOBALS['pagenow']
-	     || ( is_admin() && ! wp_doing_ajax() ) ) {
+	     || ( is_admin() && ! wp_doing_ajax() )
+	     || ( wp_doing_ajax() && is_protected_ajax_action() ) ) {
 		$pause_on_admin  = (array) get_option( 'pause_on_admin', array() );
 
 		if ( ! array_key_exists( 'plugins', $pause_on_admin ) ) {
@@ -1182,6 +1183,41 @@ function wp_doing_ajax() {
 	 * @param bool $wp_doing_ajax Whether the current request is a WordPress Ajax request.
 	 */
 	return apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
+}
+
+/**
+ * Determines whether we are currently handling an AJAX action that should be
+ * protected against WSODs.
+ *
+ * @since 5.0.0
+ *
+ * @return bool True if the current AJAX action should be protected.
+ */
+function is_protected_ajax_action() {
+	$actions_to_protect = array(
+		'edit-theme-plugin-file', // Saving changes in the core code editor.
+		'heartbeat',              // Keep the heart beating.
+		'install-plugin',         // Installing a new plugin.
+		'install-theme',          // Installing a new theme.
+		'search-plugins',         // Searching in the list of plugins.
+		'search-install-plugins', // Searching for a plugin in the plugin install screen.
+		'update-plugin',          // Update an existing plugin.
+		'update-theme',           // Update an existing theme.
+	);
+
+	if ( ! wp_doing_ajax() ) {
+		return false;
+	}
+
+	if ( ! isset( $_REQUEST['action'] ) ) {
+		return false;
+	}
+
+	if ( ! in_array( $_REQUEST['action'], $actions_to_protect, true ) ) {
+		return false;
+	}
+
+	return true;
 }
 
 /**
