@@ -1508,7 +1508,13 @@ function wp_shutdown_handler_wrapper() {
 
 	// Load the pluggable shutdown handler in case we found one.
 	if ( function_exists( 'wp_handle_shutdown' ) ) {
-		$stop_propagation = (bool) wp_handle_shutdown();
+		$stop_propagation = false;
+
+		try {
+			$stop_propagation = (bool) wp_handle_shutdown();
+		} catch ( Exception $exception ) {
+			// Catch exceptions and remain silent.
+		}
 
 		if ( $stop_propagation ) {
 			return;
