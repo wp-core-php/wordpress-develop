@@ -1470,6 +1470,30 @@ function wp_forget_extension_error( $type, $extension ) {
 }
 
 /**
+ * Determines whether we are dealing with an error that WordPress should handle
+ * in order to protect the admin backend against WSODs.
+ *
+ * @param array $error Error information retrieved from error_get_last().
+ *
+ * @return bool Whether WordPress should handle this error.
+ */
+function wp_should_handle_error( $error ) {
+	if ( ! isset( $error['type'] ) ) {
+		return false;
+	}
+
+	$error_types_to_handle = array(
+		E_ERROR,
+		E_PARSE,
+		E_USER_ERROR,
+		E_COMPILE_ERROR,
+		E_RECOVERABLE_ERROR,
+	);
+
+	return in_array( $error['type'], $error_types_to_handle, true );
+}
+
+/**
  * Wraps the shutdown handler function so it can be made pluggable at a later
  * stage.
  *
@@ -1506,8 +1530,8 @@ function wp_shutdown_handler_wrapper() {
 		return;
 	}
 
-	// For now, we only trigger our safe mode on parse errors.
-	if ( ! isset( $error['type'] ) || E_PARSE !== $error['type'] ) {
+	// Bail early if this error should not be handled.
+	if ( ! wp_should_handle_error( $error ) ) {
 		return;
 	}
 
