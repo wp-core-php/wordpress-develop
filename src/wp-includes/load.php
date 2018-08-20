@@ -1545,9 +1545,14 @@ function wp_shutdown_handler_wrapper() {
 		wp_record_extension_error( $error );
 
 		// Load custom PHP error template, if present.
-		if ( is_readable( WP_CONTENT_DIR . '/php-error.php' ) ) {
-			include WP_CONTENT_DIR . '/php-error.php';
-			die();
+		$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
+		if ( is_readable( $php_error_pluggable ) ) {
+			/*
+			 * The pluggable should control the HTTP return code and die itself.
+			 * In case it doesn't, execution is continued here and will show the
+			 * default message and die with a 500.
+			 */
+			include $php_error_pluggable;
 		}
 
 		$message = sprintf(
