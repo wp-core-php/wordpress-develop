@@ -1198,7 +1198,7 @@ function is_protected_endpoint() {
 		return true;
 	}
 
-	// Protect the aAdmin backend.
+	// Protect the admin backend.
 	if ( is_admin() && ! wp_doing_ajax() ) {
 		return true;
 	}
