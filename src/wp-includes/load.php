@@ -1607,29 +1607,28 @@ function wp_shutdown_handler_wrapper() {
 			$message = apply_filters( 'wp_technical_issues_display', $message );
 		}
 
-		if ( function_exists( 'is_protected_endpoint' ) ) {
+		/*
+		 * If we happen to be on a protected endpoint, we try to redirect to
+		 * catch multiple errors in one go.
+		 */
+		if ( function_exists( 'is_protected_endpoint' )
+		     && is_protected_endpoint() ) {
 			/*
-			 * If we happen to be on a protected endpoint, we try to redirect to
-			 * catch multiple errors in one go.
+			 * Pluggable is usually loaded after plugins, so we manually
+			 * include it here for redirection functionality.
 			 */
-			if ( is_protected_endpoint() ) {
-				/*
-				 * Pluggable is usually loaded after plugins, so we manually
-				 * include it here for redirection functionality.
-				 */
-				if ( ! function_exists( 'wp_redirect' ) ) {
-					include ABSPATH . WPINC . '/pluggable.php';
-				}
-
-				// Scheme defaults to https:// if is_ssl() is not available.
-				$scheme = ( ! function_exists( 'is_ssl' ) || is_ssl() )
-					? 'https://'
-					: 'http://';
-
-				$url = "{$scheme}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-				wp_redirect( $url );
-				exit;
+			if ( ! function_exists( 'wp_redirect' ) ) {
+				include ABSPATH . WPINC . '/pluggable.php';
 			}
+
+			// Scheme defaults to https:// if is_ssl() is not available.
+			$scheme = ( ! function_exists( 'is_ssl' ) || is_ssl() )
+				? 'https://'
+				: 'http://';
+
+			$url = "{$scheme}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+			wp_redirect( $url );
+			exit;
 		}
 
 		wp_die( $message, '', 500 );
