@@ -1023,22 +1023,56 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 }
 
 /**
- * Resumes a single plugin.
+ * Tries to resume a single plugin.
  *
  * Resuming the plugin basically means removing its entry from the
  * `pause_on_admin` database option.
  *
+ * If a redirect was provided, we first ensure the plugin does not throw fatal
+ * errors anymore.
+ *
+ * The way it works is by setting the redirection to the error before trying to
+ * include the plugin file. If the plugin fails, then the redirection will not
+ * be overwritten with the success message and the `pause_on_admin` option
+ * will not be updated.
+ *
  * @since 5.0.0
  *
- * @param string $plugin Single plugin to resume.
+ * @param string $plugin   Single plugin to resume.
+ * @param string $redirect Optional. URL to redirect to.
  *
- * @return bool|WP_Error True on success, false if `$plugin` was not paused, `WP_Error` on failure.
+ * @return bool|WP_Error True on success, false if `$plugin` was not paused,
+ *                       `WP_Error` on failure.
  */
-function resume_plugin( $plugin ) {
+function resume_plugin( $plugin, $redirect = '' ) {
+	/*
+	 * We'll override this later if the plugin could be included without
+	 * creating a fatal error.
+	 */
+	if ( ! empty( $redirect ) ) {
+		wp_redirect(
+			add_query_arg(
+				'_error_nonce',
+				wp_create_nonce( 'plugin-resume-error_' . $plugin ),
+				$redirect
+			)
+		);
+
+		// Load the plugin to test whether it throws a fatal error.
+		ob_start();
+		$plugin_path = WP_PLUGIN_DIR . '/' . $plugin;
+		wp_register_plugin_realpath( $plugin_path );
+		include_once $plugin_path;
+		ob_clean();
+	}
+
 	$result = wp_forget_extension_error( 'plugins', $plugin );
 
 	if ( ! $result ) {
-		return new WP_Error( 'could_not_resume_plugin', __( 'Could not resume execution of the plugin.' ) );
+		return new WP_Error(
+			'could_not_resume_plugin',
+			__( 'Could not resume execution of the plugin.' )
+		);
 	}
 
 	return true;
