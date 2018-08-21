@@ -689,12 +689,11 @@ function wp_get_active_and_valid_plugins() {
 	}
 
 	/*
-	 * Remove plugins from the list of active plugins when we're on an admin or
-	 * login screen and the plugin appears in the `pause_on_admin` list.
+	 * Remove plugins from the list of active plugins when we're on an endpoint
+	 * that should be protected against WSODs and the plugin appears in the
+	 * `pause_on_admin` list.
 	 */
-	if ( 'wp-login.php' === $GLOBALS['pagenow']
-	     || ( is_admin() && ! wp_doing_ajax() )
-	     || ( wp_doing_ajax() && is_protected_ajax_action() ) ) {
+	if ( is_protected_endpoint() ) {
 		$pause_on_admin  = (array) get_option( 'pause_on_admin', array() );
 
 		if ( ! array_key_exists( 'plugins', $pause_on_admin ) ) {
@@ -1183,6 +1182,33 @@ function wp_doing_ajax() {
 	 * @param bool $wp_doing_ajax Whether the current request is a WordPress Ajax request.
 	 */
 	return apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
+}
+
+/**
+ * Determines whether we are currently on an endpoint that should be protected
+ * against WSODs.
+ *
+ * @since 5.0.0
+ *
+ * @return bool True if the current endpoint should be protected.
+ */
+function is_protected_endpoint() {
+	// Protect login pages.
+	if ( 'wp-login.php' === $GLOBALS['pagenow'] ) {
+		return true;
+	}
+
+	// Protect the aAdmin backend.
+	if ( is_admin() && ! wp_doing_ajax() ) {
+		return true;
+	}
+
+	// Protect AJAX actions that could help resolve a fatal error should be available.
+	if ( wp_doing_ajax() && is_protected_ajax_action() ) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
