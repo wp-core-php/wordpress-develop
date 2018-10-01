@@ -69,7 +69,7 @@ function current_time( $type, $gmt = 0 ) {
 		case 'timestamp':
 			return ( $gmt ) ? time() : time() + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 		default:
-			return ( $gmt ) ? date( $type ) : date( $type, time() + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
+			return ( $gmt ) ? gmdate( $type ) : gmdate( $type, time() + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 	}
 }
 
@@ -320,6 +320,62 @@ function size_format( $bytes, $decimals = 0 ) {
 	}
 
 	return false;
+}
+
+/**
+ * Convert a filelength to human readable format.
+ *
+ * @since 5.0
+ *
+ * @param string $filelength Duration will be in string format (HH:ii:ss) OR (ii:ss).
+ * @return boolean|string A human readable filelength string, false on failure.
+ */
+function human_readable_duration( $filelength = '' ) {
+	// Return false if filelength is empty or not in format.
+	if ( ( empty( $filelength ) || ! is_string( $filelength ) ) ) {
+		return false;
+	}
+
+	// Validate filelength format.
+	if ( ! ( (bool) preg_match( '/^(([0-3]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/', $filelength ) ) ) {
+		return false;
+	}
+
+	$human_readable_duration = array();
+
+	// Extract duration.
+	$durations      = array_reverse( explode( ':', $filelength ) );
+	$duration_count = count( $durations );
+
+	if ( 3 === $duration_count ) {
+		// Three parts: hours, minutes & seconds.
+		list( $second, $minute, $hour ) = $durations;
+	} elseif ( 2 === $duration_count ) {
+		// Two parts: minutes & seconds.
+		list( $second, $minute ) = $durations;
+	} else {
+		return false;
+	}
+
+	// Add the hour part to the string.
+	if ( ! empty( $hour ) && is_numeric( $hour ) ) {
+		/* translators: Time duration in hour or hours. */
+		$human_readable_duration[] = sprintf( _n( '%s hour', '%s hours', $hour ), (int) $hour );
+	}
+
+	// Add the minute part to the string.
+	if ( ! empty( $minute ) && is_numeric( $minute ) ) {
+		/* translators: Time duration in minute or minutes. */
+		$human_readable_duration[] = sprintf( _n( '%s minute', '%s minutes', $minute ), (int) $minute );
+	}
+
+	// Add the second part to the string.
+	if ( ! empty( $second ) && is_numeric( $second ) ) {
+		/* translators: Time duration in second or seconds. */
+		$human_readable_duration[] = sprintf( _n( '%s second', '%s seconds', $second ), (int) $second );
+	}
+
+	return implode( ', ', $human_readable_duration );
 }
 
 /**
@@ -4358,10 +4414,14 @@ function _doing_it_wrong( $function, $message, $version ) {
 	 * Filters whether to trigger an error for _doing_it_wrong() calls.
 	 *
 	 * @since 3.1.0
+	 * @since 5.0.0 Added the $function, $message and $version parameters.
 	 *
-	 * @param bool $trigger Whether to trigger the error for _doing_it_wrong() calls. Default true.
+	 * @param bool   $trigger  Whether to trigger the error for _doing_it_wrong() calls. Default true.
+	 * @param string $function The function that was called.
+	 * @param string $message  A message explaining what has been done incorrectly.
+	 * @param string $version  The version of WordPress where the message was added.
 	 */
-	if ( WP_DEBUG && apply_filters( 'doing_it_wrong_trigger_error', true ) ) {
+	if ( WP_DEBUG && apply_filters( 'doing_it_wrong_trigger_error', true, $function, $message, $version ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( is_null( $version ) ) {
 				$version = '';
@@ -5588,7 +5648,7 @@ function wp_is_stream( $path ) {
  *
  * @since 3.5.0
  *
- * @see checkdate()
+ * @link https://secure.php.net/manual/en/function.checkdate.php
  *
  * @param  int    $month       Month number.
  * @param  int    $day         Day number.
@@ -6084,7 +6144,8 @@ function wp_generate_uuid4() {
  * @since 4.9.0
  *
  * @param mixed $uuid    UUID to check.
- * @param int   $version Specify which version of UUID to check against. Default is none, to accept any UUID version. Otherwise, only version allowed is `4`.
+ * @param int   $version Specify which version of UUID to check against. Default is none,
+ *                       to accept any UUID version. Otherwise, only version allowed is `4`.
  * @return bool The string is a valid UUID or false on failure.
  */
 function wp_is_uuid( $uuid, $version = null ) {
@@ -6104,6 +6165,26 @@ function wp_is_uuid( $uuid, $version = null ) {
 	}
 
 	return (bool) preg_match( $regex, $uuid );
+}
+
+/**
+ * Get unique ID.
+ *
+ * This is a PHP implementation of Underscore's uniqueId method. A static variable
+ * contains an integer that is incremented with each call. This number is returned
+ * with the optional prefix. As such the returned value is not universally unique,
+ * but it is unique across the life of the PHP process.
+ *
+ * @since 4.9.9
+ *
+ * @staticvar int $id_counter
+ *
+ * @param string $prefix Prefix for the returned ID.
+ * @return string Unique ID.
+ */
+function wp_unique_id( $prefix = '' ) {
+	static $id_counter = 0;
+	return $prefix . (string) ++$id_counter;
 }
 
 /**

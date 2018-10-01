@@ -1118,6 +1118,34 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests wp_unique_id().
+	 *
+	 * @covers ::wp_unique_id
+	 * @ticket 44883
+	 */
+	function test_wp_unique_id() {
+
+		// Test without prefix.
+		$ids = array();
+		for ( $i = 0; $i < 20; $i += 1 ) {
+			$id = wp_unique_id();
+			$this->assertInternalType( 'string', $id );
+			$this->assertTrue( is_numeric( $id ) );
+			$ids[] = $id;
+		}
+		$this->assertEquals( $ids, array_unique( $ids ) );
+
+		// Test with prefix.
+		$ids = array();
+		for ( $i = 0; $i < 20; $i += 1 ) {
+			$id = wp_unique_id( 'foo-' );
+			$this->assertRegExp( '/^foo-\d+$/', $id );
+			$ids[] = $id;
+		}
+		$this->assertEquals( $ids, array_unique( $ids ) );
+	}
+
+	/**
 	 * @ticket 40017
 	 * @dataProvider _wp_get_image_mime
 	 */
@@ -1516,6 +1544,45 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '../../some/relative/path', false ),
 			array( 'some/other/relative/path', false ),
 			array( '/leading/relative/path', false ),
+		);
+	}
+
+	/**
+	 * Test the human_readable_duration function.
+	 *
+	 * @ticket 39667
+	 * @dataProvider _datahuman_readable_duration()
+	 *
+	 * @param $input
+	 * @param $expected
+	 */
+	public function test_duration_format( $input, $expected ) {
+		$this->assertSame( $expected, human_readable_duration( $input ) );
+	}
+
+	public function _datahuman_readable_duration() {
+		return array(
+			array( array(), false ),
+			array( '30:00', '30 minutes, 0 seconds' ),
+			array( 'Batman Begins !', false ),
+			array( '', false ),
+			array( '-1', false ),
+			array( -1, false ),
+			array( 0, false ),
+			array( 1, false ),
+			array( '00', false ),
+			array( '00:00', '0 minutes, 0 seconds' ),
+			array( '00:00:00', '0 hours, 0 minutes, 0 seconds' ),
+			array( '10:30:34', '10 hours, 30 minutes, 34 seconds' ),
+			array( '00:30:34', '0 hours, 30 minutes, 34 seconds' ),
+			array( 'MM:30:00', false ),
+			array( '30:MM', false ),
+			array( 'MM:00', false ),
+			array( 'MM:MM', false ),
+			array( '01:01', '1 minute, 1 second' ),
+			array( '01:01:01', '1 hour, 1 minute, 1 second' ),
+			array( '0:05', '5 seconds' ),
+			array( '1:02:00', '1 hour, 2 minutes, 0 seconds' ),
 		);
 	}
 }
