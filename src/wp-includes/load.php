@@ -1554,21 +1554,19 @@ function wp_shutdown_handler_wrapper() {
 		return;
 	}
 
-	/*
-	 * If the option API has not been loaded yet, we cannot persist our
-	 * discovery, so there's no point in moving forward.
-	 */
-	if ( ! function_exists( 'get_option' ) ) {
-		return;
-	}
-
 	// Bail early if this error should not be handled.
 	if ( ! wp_should_handle_error( $error ) ) {
 		return;
 	}
 
 	try {
-		wp_record_extension_error( $error );
+		/*
+		 * Only try persisting the detected error if the Options API has already
+		 * been loaded.
+		 */
+		if ( function_exists( 'get_option' ) ) {
+			wp_record_extension_error( $error );
+		}
 
 		// Load custom PHP error template, if present.
 		$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
