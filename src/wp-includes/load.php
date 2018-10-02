@@ -1423,6 +1423,10 @@ function wp_prune_extension_errors( $errors ) {
 function wp_record_extension_error( $error ) {
 	global $wp_theme_directories;
 
+	if ( ! function_exists( 'get_option' ) ) {
+		return false;
+	}
+
 	$path = '';
 
 	$error_file      = wp_normalize_path( $error['file'] );
@@ -1572,13 +1576,8 @@ function wp_shutdown_handler_wrapper() {
 	}
 
 	try {
-		/*
-		 * Only try persisting the detected error if the Options API has already
-		 * been loaded.
-		 */
-		if ( function_exists( 'get_option' ) ) {
-			wp_record_extension_error( $error );
-		}
+		// Persist the detected error.
+		wp_record_extension_error( $error );
 
 		// Load custom PHP error template, if present.
 		$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
