@@ -428,27 +428,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			switch ( $type ) {
 				case 'all':
+					/* translators: %s: plugin count */
 					$text = _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'plugins' );
 					break;
 				case 'active':
+					/* translators: %s: plugin count */
 					$text = _n( 'Active <span class="count">(%s)</span>', 'Active <span class="count">(%s)</span>', $count );
 					break;
 				case 'recently_activated':
+					/* translators: %s: plugin count */
 					$text = _n( 'Recently Active <span class="count">(%s)</span>', 'Recently Active <span class="count">(%s)</span>', $count );
 					break;
 				case 'inactive':
+					/* translators: %s: plugin count */
 					$text = _n( 'Inactive <span class="count">(%s)</span>', 'Inactive <span class="count">(%s)</span>', $count );
 					break;
 				case 'mustuse':
+					/* translators: %s: plugin count */
 					$text = _n( 'Must-Use <span class="count">(%s)</span>', 'Must-Use <span class="count">(%s)</span>', $count );
 					break;
 				case 'dropins':
+					/* translators: %s: plugin count */
 					$text = _n( 'Drop-ins <span class="count">(%s)</span>', 'Drop-ins <span class="count">(%s)</span>', $count );
 					break;
 				case 'paused':
+					/* translators: %s: plugin count */
 					$text = _n( 'Paused <span class="count">(%s)</span>', 'Paused <span class="count">(%s)</span>', $count );
 					break;
 				case 'upgrade':
+					/* translators: %s: plugin count */
 					$text = _n( 'Update Available <span class="count">(%s)</span>', 'Update Available <span class="count">(%s)</span>', $count );
 					break;
 			}
@@ -882,6 +890,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							echo sprintf(
 								'<div class="error-display"><p>%s</p></div>',
 								sprintf(
+									/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
 									__( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' ),
 									"<code>{$error['type']}</code>",
 									"<code>{$error['line']}</code>",
@@ -891,7 +900,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							);
 						}
 					}
-
 
 					echo '</td>';
 					break;

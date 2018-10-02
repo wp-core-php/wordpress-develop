@@ -694,7 +694,7 @@ function wp_get_active_and_valid_plugins() {
 	 * `pause_on_admin` list.
 	 */
 	if ( is_protected_endpoint() ) {
-		$pause_on_admin  = (array) get_option( 'pause_on_admin', array() );
+		$pause_on_admin = (array) get_option( 'pause_on_admin', array() );
 
 		if ( ! array_key_exists( 'plugins', $pause_on_admin ) ) {
 			return $plugins;
@@ -1364,19 +1364,19 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  * @return array Pruned array of errors.
  */
 function wp_prune_extension_errors( $errors ) {
-	foreach( array( 'plugins', 'mu-plugins', 'themes' ) as $type ) {
+	foreach ( array( 'plugins', 'mu-plugins', 'themes' ) as $type ) {
 		if ( ! array_key_exists( $type, $errors ) ) {
 			continue;
 		}
 
-		switch( $type ) {
+		switch ( $type ) {
 			case 'plugins':
 				$active_plugins = array_merge(
 					(array) get_option( 'active_plugins', array() ),
 					(array) get_option( 'active_sitewide_plugins', array() )
 				);
 
-				foreach( $errors[ $type ] as $plugin => $error ) {
+				foreach ( $errors[ $type ] as $plugin => $error ) {
 					$found = false;
 
 					foreach ( $active_plugins as $active_plugin ) {
@@ -1597,11 +1597,10 @@ function wp_shutdown_handler_wrapper() {
 		);
 
 		if ( function_exists( 'get_admin_url' ) ) {
-			$url = get_admin_url();
 			$message .= sprintf(
 				'<hr><p><em>%s <a href="%s">%s</a></em></p>',
 				__( 'Are you the site owner?' ),
-				$url,
+				get_admin_url(),
 				__( 'Log into the admin backend to fix this.' )
 			);
 		}
@@ -1621,8 +1620,7 @@ function wp_shutdown_handler_wrapper() {
 		 * If we happen to be on a protected endpoint, we try to redirect to
 		 * catch multiple errors in one go.
 		 */
-		if ( function_exists( 'is_protected_endpoint' )
-		     && is_protected_endpoint() ) {
+		if ( function_exists( 'is_protected_endpoint' ) && is_protected_endpoint() ) {
 			/*
 			 * Pluggable is usually loaded after plugins, so we manually
 			 * include it here for redirection functionality.
