@@ -1208,7 +1208,19 @@ function is_protected_endpoint() {
 		return true;
 	}
 
-	return false;
+	/**
+	 * Filters whether the current request is against a protected endpoint.
+	 *
+	 * This filter is only fired when an endpoint is requested which is not already protected by
+	 * WordPress core. As such, it exclusively allows providing further protected endpoints in
+	 * addition to the admin backend, login pages and protected AJAX actions.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected.
+	 *                                    Default false.
+	 */
+	return (bool) apply_filters( 'is_protected_endpoint', false );
 }
 
 /**
