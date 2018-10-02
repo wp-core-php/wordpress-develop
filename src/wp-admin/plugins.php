@@ -502,7 +502,7 @@ if ( isset( $_GET['error'] ) ) :
 	} elseif ( isset( $_GET['charsout'] ) ) {
 		$errmsg = sprintf( __( 'The plugin generated %d characters of <strong>unexpected output</strong> during activation. If you notice &#8220;headers already sent&#8221; messages, problems with syndication feeds or other issues, try deactivating or removing this plugin.' ), $_GET['charsout'] );
 	} elseif ( 'resuming' === $_GET['error'] ) {
-		$errmsg = __( 'Plugin could not be resumed because it tri§ggered a <strong>fatal error</strong>.' );
+		$errmsg = __( 'Plugin could not be resumed because it triggered a <strong>fatal error</strong>.' );
 	} else {
 		$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
 	}
