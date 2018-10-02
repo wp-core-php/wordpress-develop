@@ -1620,7 +1620,7 @@ function wp_shutdown_handler_wrapper() {
 		 * If we happen to be on a protected endpoint, we try to redirect to
 		 * catch multiple errors in one go.
 		 */
-		if ( function_exists( 'is_protected_endpoint' ) && is_protected_endpoint() ) {
+		if ( is_protected_endpoint() ) {
 			/*
 			 * Pluggable is usually loaded after plugins, so we manually
 			 * include it here for redirection functionality.
@@ -1629,10 +1629,7 @@ function wp_shutdown_handler_wrapper() {
 				include ABSPATH . WPINC . '/pluggable.php';
 			}
 
-			// Scheme defaults to https:// if is_ssl() is not available.
-			$scheme = ( ! function_exists( 'is_ssl' ) || is_ssl() )
-				? 'https://'
-				: 'http://';
+			$scheme = is_ssl() ? 'https://' : 'http://';
 
 			$url = "{$scheme}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
 			wp_redirect( $url );
