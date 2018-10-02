@@ -1579,17 +1579,39 @@ function wp_shutdown_handler_wrapper() {
 		// Persist the detected error.
 		wp_record_extension_error( $error );
 
+		/*
+		 * If we happen to be on a protected endpoint, we try to redirect to
+		 * catch multiple errors in one go.
+		 */
+		if ( is_protected_endpoint() ) {
+			/*
+			 * Pluggable is usually loaded after plugins, so we manually
+			 * include it here for redirection functionality.
+			 */
+			if ( ! function_exists( 'wp_redirect' ) ) {
+				include ABSPATH . WPINC . '/pluggable.php';
+			}
+
+			$scheme = is_ssl() ? 'https://' : 'http://';
+
+			$url = "{$scheme}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+			wp_redirect( $url );
+			exit;
+		}
+
 		// Load custom PHP error template, if present.
 		$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
 		if ( is_readable( $php_error_pluggable ) ) {
 			/*
-			 * The pluggable should control the HTTP return code and die itself.
-			 * In case it doesn't, execution is continued here and will show the
-			 * default message and die with a 500.
+			 * This drop-in should control the HTTP status code and print the
+			 * HTML markup indicating that a PHP error occurred. Alternatively,
+			 * `wp_die()` can be used.
 			 */
-			include $php_error_pluggable;
+			require_once $php_error_pluggable;
+			die();
 		}
 
+		// Otherwise, fall back to a default wp_die() message.
 		$message = sprintf(
 			'<p>%s</p>',
 			__( 'The site is experiencing technical difficulties.' )
@@ -1613,26 +1635,6 @@ function wp_shutdown_handler_wrapper() {
 			 * @param string $message HTML error message to display.
 			 */
 			$message = apply_filters( 'wp_technical_issues_display', $message );
-		}
-
-		/*
-		 * If we happen to be on a protected endpoint, we try to redirect to
-		 * catch multiple errors in one go.
-		 */
-		if ( is_protected_endpoint() ) {
-			/*
-			 * Pluggable is usually loaded after plugins, so we manually
-			 * include it here for redirection functionality.
-			 */
-			if ( ! function_exists( 'wp_redirect' ) ) {
-				include ABSPATH . WPINC . '/pluggable.php';
-			}
-
-			$scheme = is_ssl() ? 'https://' : 'http://';
-
-			$url = "{$scheme}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-			wp_redirect( $url );
-			exit;
 		}
 
 		wp_die( $message, '', 500 );
