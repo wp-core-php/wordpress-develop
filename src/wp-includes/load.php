@@ -1202,7 +1202,7 @@ function wp_doing_ajax() {
  */
 function is_protected_endpoint() {
 	// Protect login pages.
-	if ( 'wp-login.php' === $GLOBALS['pagenow'] ) {
+	if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
 		return true;
 	}
 
