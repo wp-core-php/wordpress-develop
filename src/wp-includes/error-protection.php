@@ -84,11 +84,13 @@ function wp_record_extension_error( $error ) {
  *
  * @since 5.1.0
  *
- * @param string $type Type of the extension.
- * @param string $extension Relative path of the extension.
+ * @param string $type         Type of the extension.
+ * @param string $extension    Relative path of the extension.
+ * @param bool   $network_wide Optional. Whether to resume the plugin for the entire
+ *                             network. Default false.
  * @return bool Whether the extension error was successfully forgotten.
  */
-function wp_forget_extension_error( $type, $extension ) {
+function wp_forget_extension_error( $type, $extension, $network_wide = false ) {
 	switch ( $type ) {
 		case 'plugins':
 			$callback          = 'wp_paused_plugins';
@@ -102,6 +104,12 @@ function wp_forget_extension_error( $type, $extension ) {
 
 	if ( empty( $callback ) || empty( $extension ) ) {
 		return false;
+	}
+
+	// Handle manually since the regular APIs do not expose this functionality.
+	if ( $network_wide ) {
+		$site_meta_query_clause = call_user_func( $callback )->get_site_meta_query_clause( $extension );
+		return delete_metadata( 'blog', 0, $site_meta_query_clause['key'], '', true );
 	}
 
 	return call_user_func( $callback )->unset( $extension );

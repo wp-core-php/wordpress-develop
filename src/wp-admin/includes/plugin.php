@@ -550,6 +550,33 @@ function wp_get_plugin_error( $plugin ) {
 }
 
 /**
+ * Gets the number of sites on which a specific plugin is paused.
+ *
+ * @since 5.1.0
+ *
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
+ * @return int Site count.
+ */
+function count_paused_plugin_sites_for_network( $plugin ) {
+	if ( ! is_multisite() ) {
+		return is_plugin_paused( $plugin ) ? 1 : 0;
+	}
+
+	list( $plugin ) = explode( '/', $plugin );
+
+	$query_args = array(
+		'count'      => true,
+		'number'     => 0,
+		'network_id' => get_current_network_id(),
+		'meta_query' => array(
+			wp_paused_plugins()->get_site_meta_query_clause( $plugin ),
+		),
+	);
+
+	return get_sites( $query_args );
+}
+
+/**
  * Determines whether the plugin is active for the entire network.
  *
  * Only plugins installed in the plugins/ folder can be active.
@@ -1034,13 +1061,14 @@ function delete_plugins( $plugins, $deprecated = '' ) {
  *
  * @since 5.1.0
  *
- * @param string $plugin   Single plugin to resume.
- * @param string $redirect Optional. URL to redirect to.
- *
+ * @param string $plugin       Single plugin to resume.
+ * @param string $redirect     Optional. URL to redirect to. Default empty string.
+ * @param bool   $network_wide Optional. Whether to resume the plugin for the entire
+ *                             network. Default false.
  * @return bool|WP_Error True on success, false if `$plugin` was not paused,
  *                       `WP_Error` on failure.
  */
-function resume_plugin( $plugin, $redirect = '' ) {
+function resume_plugin( $plugin, $redirect = '', $network_wide = false ) {
 	/*
 	 * We'll override this later if the plugin could be included without
 	 * creating a fatal error.
@@ -1062,7 +1090,7 @@ function resume_plugin( $plugin, $redirect = '' ) {
 		ob_clean();
 	}
 
-	$result = wp_forget_extension_error( 'plugins', $plugin );
+	$result = wp_forget_extension_error( 'plugins', $plugin, $network_wide );
 
 	if ( ! $result ) {
 		return new WP_Error(

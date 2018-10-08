@@ -643,10 +643,18 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						/* translators: %s: plugin name */
 						$actions['deactivate'] = '<a href="' . wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Deactivate' ) . '</a>';
 					}
+					if ( current_user_can( 'manage_network_plugins' ) && count_paused_plugin_sites_for_network( $plugin_file ) ) {
+						/* translators: %s: plugin name */
+						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume network execution of %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume network execution' ) . '</a>';
+					}
 				} else {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						/* translators: %s: plugin name */
 						$actions['activate'] = '<a href="' . wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ) . '" class="edit" aria-label="' . esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Activate' ) . '</a>';
+					}
+					if ( current_user_can( 'manage_network_plugins' ) && count_paused_plugin_sites_for_network( $plugin_file ) ) {
+						/* translators: %s: plugin name */
+						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume network execution of %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume network execution' ) . '</a>';
 					}
 					if ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $plugin_file ) ) {
 						/* translators: %s: plugin name */
@@ -781,8 +789,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$class .= ' update';
 		}
 
-		$paused = is_plugin_paused( $plugin_file );
-		if ( $paused ) {
+		$paused                        = is_plugin_paused( $plugin_file );
+		$paused_on_network_sites_count = $screen->in_admin( 'network' ) ? count_paused_plugin_sites_for_network( $plugin_file ) : 0;
+		if ( $paused || $paused_on_network_sites_count ) {
 			$class .= ' paused';
 		}
 
@@ -871,11 +880,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					echo '</div>';
 
-					if ( $paused ) {
-						echo sprintf(
-							'<p><span class="dashicons dashicons-warning"></span> <strong>%s</strong></p>',
-							__( 'This plugin failed to load properly and was paused within the admin backend.' )
-						);
+					if ( $paused || $paused_on_network_sites_count ) {
+						$notice_text = __( 'This plugin failed to load properly and was paused within the admin backend.' );
+						if ( $screen->in_admin( 'network' ) && $paused_on_network_sites_count ) {
+							$notice_text = sprintf(
+								/* translators: %s: number of sites */
+								_n( 'This plugin failed to load properly and was paused within the admin backend for %s site.', 'This plugin failed to load properly and was paused within the admin backend for %s sites.', $paused_on_network_sites_count ),
+								number_format_i18n( $paused_on_network_sites_count )
+							);
+						}
+
+						echo sprintf( '<p><span class="dashicons dashicons-warning"></span> <strong>%s</strong></p>', $notice_text );
 
 						$error = wp_get_plugin_error( $plugin_file );
 

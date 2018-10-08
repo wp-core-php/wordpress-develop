@@ -401,7 +401,7 @@ if ( $action ) {
 
 			check_admin_referer( 'resume-plugin_' . $plugin );
 
-			$result = resume_plugin( $plugin, self_admin_url( 'plugins.php?error=resuming' ) );
+			$result = resume_plugin( $plugin, self_admin_url( 'plugins.php?error=resuming' ), is_network_admin() );
 
 			if ( is_wp_error( $result ) ) {
 				wp_die( $result );
