@@ -1025,16 +1025,12 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 /**
  * Tries to resume a single plugin.
  *
- * Resuming the plugin basically means removing its entry from the
- * `pause_on_admin` database option.
- *
  * If a redirect was provided, we first ensure the plugin does not throw fatal
  * errors anymore.
  *
  * The way it works is by setting the redirection to the error before trying to
  * include the plugin file. If the plugin fails, then the redirection will not
- * be overwritten with the success message and the `pause_on_admin` option
- * will not be updated.
+ * be overwritten with the success message and the plugin will not be resumed.
  *
  * @since 5.1.0
  *

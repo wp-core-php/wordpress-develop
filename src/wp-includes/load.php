@@ -708,20 +708,20 @@ function wp_get_active_and_valid_plugins() {
  * @return array Filtered value of $plugins, without any paused plugins.
  */
 function wp_skip_paused_plugins( array $plugins ) {
-	$pause_on_admin = (array) get_option( 'pause_on_admin', array() );
+	$paused_plugins = wp_paused_plugins()->get_all();
 
-	if ( ! array_key_exists( 'plugins', $pause_on_admin ) ) {
+	if ( empty( $paused_plugins ) ) {
 		return $plugins;
 	}
 
 	foreach ( $plugins as $index => $plugin ) {
 		list( $plugin ) = explode( '/', plugin_basename( $plugin ) );
 
-		if ( array_key_exists( $plugin, $pause_on_admin['plugins'] ) ) {
+		if ( array_key_exists( $plugin, $paused_plugins ) ) {
 			unset( $plugins[ $index ] );
 
 			// Store list of paused plugins for displaying an admin notice.
-			$GLOBALS['_paused_plugins'][ $plugin ] = $pause_on_admin['plugins'][ $plugin ];
+			$GLOBALS['_paused_plugins'][ $plugin ] = $paused_plugins[ $plugin ];
 		}
 	}
 
@@ -1364,58 +1364,6 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
 }
 
 /**
- * Prunes the array of recorded extension errors.
- *
- * @since 5.1.0
- *
- * @param array $errors Array of errors to prune.
- * @return array Pruned array of errors.
- */
-function wp_prune_extension_errors( $errors ) {
-	foreach ( array( 'plugins', 'themes' ) as $type ) {
-		if ( ! array_key_exists( $type, $errors ) ) {
-			continue;
-		}
-
-		switch ( $type ) {
-			case 'plugins':
-				$active_plugins = array_merge(
-					(array) get_option( 'active_plugins', array() ),
-					(array) get_option( 'active_sitewide_plugins', array() )
-				);
-
-				foreach ( $errors[ $type ] as $plugin => $error ) {
-					$found = false;
-
-					foreach ( $active_plugins as $active_plugin ) {
-						list( $active_plugin ) = explode( '/', $active_plugin );
-
-						if ( $active_plugin === $plugin ) {
-							$found = true;
-							break;
-						}
-					}
-
-					if ( ! $found ) {
-						unset( $errors[ $type ][ $plugin ] );
-					}
-				}
-
-				break;
-			case 'themes':
-				// TODO: Implement theme-specific behavior.
-				break;
-		}
-
-		if ( 0 === count( $errors[ $type ] ) ) {
-			unset( $errors[ $type ] );
-		}
-	}
-
-	return $errors;
-}
-
-/**
  * Records the extension error as a database option.
  *
  * @since 5.1.0
@@ -1428,52 +1376,30 @@ function wp_prune_extension_errors( $errors ) {
 function wp_record_extension_error( $error ) {
 	global $wp_theme_directories;
 
-	if ( ! function_exists( 'get_option' ) ) {
-		return false;
-	}
-
-	$path = '';
-
 	$error_file    = wp_normalize_path( $error['file'] );
 	$wp_plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 
 	if ( 0 === strpos( $error_file, $wp_plugin_dir ) ) {
-		$type = 'plugins';
-		$path = str_replace( $wp_plugin_dir . '/', '', $error_file );
+		$callback = 'wp_paused_plugins';
+		$path     = str_replace( $wp_plugin_dir . '/', '', $error_file );
 	} else {
 		foreach ( $wp_theme_directories as $theme_directory ) {
 			$theme_directory = wp_normalize_path( $theme_directory );
 			if ( 0 === strpos( $error_file, $theme_directory ) ) {
-				$type = 'themes';
-				$path = str_replace( $theme_directory . '/', '', $error_file );
+				$callback = 'wp_paused_themes';
+				$path     = str_replace( $theme_directory . '/', '', $error_file );
 			}
 		}
 	}
 
-	if ( empty( $type ) || empty( $path ) ) {
+	if ( empty( $callback ) || empty( $path ) ) {
 		return false;
 	}
 
 	$parts     = explode( '/', $path );
 	$extension = array_shift( $parts );
 
-	$errors = (array) get_option( 'pause_on_admin', array() );
-
-	$modified_errors = $errors;
-
-	if ( ! array_key_exists( $type, $modified_errors ) ) {
-		$modified_errors[ $type ] = array();
-	}
-
-	$modified_errors[ $type ][ $extension ] = $error;
-
-	$modified_errors = wp_prune_extension_errors( $modified_errors );
-
-	if ( $modified_errors === $errors ) {
-		return true;
-	}
-
-	return update_option( 'pause_on_admin', $modified_errors );
+	return call_user_func( $callback )->set( $extension, $error );
 }
 
 /**
@@ -1486,30 +1412,22 @@ function wp_record_extension_error( $error ) {
  * @return bool Whether the extension error was successfully forgotten.
  */
 function wp_forget_extension_error( $type, $extension ) {
-	$errors = (array) get_option( 'pause_on_admin', array() );
+	switch ( $type ) {
+		case 'plugins':
+			$callback          = 'wp_paused_plugins';
+			list( $extension ) = explode( '/', $extension );
+			break;
+		case 'themes':
+			$callback          = 'wp_paused_themes';
+			list( $extension ) = explode( '/', $extension );
+			break;
+	}
 
-	if ( ! array_key_exists( $type, $errors ) ) {
+	if ( empty( $callback ) || empty( $extension ) ) {
 		return false;
 	}
 
-	$modified_errors = $errors;
-
-	switch ( $type ) {
-		case 'plugins':
-			list( $extension ) = explode( '/', $extension );
-	}
-
-	if ( array_key_exists( $extension, $modified_errors[ $type ] ) ) {
-		unset( $modified_errors[ $type ][ $extension ] );
-	}
-
-	$modified_errors = wp_prune_extension_errors( $modified_errors );
-
-	if ( $modified_errors === $errors ) {
-		return true;
-	}
-
-	return update_option( 'pause_on_admin', $modified_errors );
+	return call_user_func( $callback )->unset( $extension );
 }
 
 /**
