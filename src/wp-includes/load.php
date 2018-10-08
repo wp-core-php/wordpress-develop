@@ -690,30 +690,38 @@ function wp_get_active_and_valid_plugins() {
 
 	/*
 	 * Remove plugins from the list of active plugins when we're on an endpoint
-	 * that should be protected against WSODs and the plugin appears in the
-	 * `pause_on_admin` list.
+	 * that should be protected against WSODs and the plugin is paused.
 	 */
 	if ( is_protected_endpoint() ) {
-		$pause_on_admin = (array) get_option( 'pause_on_admin', array() );
+		$plugins = wp_skip_paused_plugins( $plugins );
+	}
 
-		if ( ! array_key_exists( 'plugins', $pause_on_admin ) ) {
-			return $plugins;
-		}
+	return $plugins;
+}
 
-		foreach ( $plugins as $index => $plugin ) {
-			$parts = explode(
-				'/',
-				str_replace( wp_normalize_path( WP_CONTENT_DIR . '/' ), '', wp_normalize_path( $plugin ) )
-			);
+/**
+ * Filters a given list of plugins, removing any paused plugins from it.
+ *
+ * @since 5.1.0
+ *
+ * @param array $plugins List of absolute plugin main file paths.
+ * @return array Filtered value of $plugins, without any paused plugins.
+ */
+function wp_skip_paused_plugins( array $plugins ) {
+	$pause_on_admin = (array) get_option( 'pause_on_admin', array() );
 
-			$type   = array_shift( $parts );
-			$plugin = array_shift( $parts );
+	if ( ! array_key_exists( 'plugins', $pause_on_admin ) ) {
+		return $plugins;
+	}
 
-			if ( array_key_exists( $plugin, $pause_on_admin[ $type ] ) ) {
-				unset( $plugins[ $index ] );
-				// Store list of paused plugins for displaying an admin notice.
-				$GLOBALS['_paused_plugins'][ $plugin ] = $pause_on_admin[ $type ][ $plugin ];
-			}
+	foreach ( $plugins as $index => $plugin ) {
+		list( $plugin ) = explode( '/', plugin_basename( $plugin ) );
+
+		if ( array_key_exists( $plugin, $pause_on_admin['plugins'] ) ) {
+			unset( $plugins[ $index ] );
+
+			// Store list of paused plugins for displaying an admin notice.
+			$GLOBALS['_paused_plugins'][ $plugin ] = $pause_on_admin['plugins'][ $plugin ];
 		}
 	}
 
