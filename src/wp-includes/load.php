@@ -1188,7 +1188,7 @@ function wp_doing_ajax() {
  * Determines whether we are currently on an endpoint that should be protected
  * against WSODs.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @return bool True if the current endpoint should be protected.
  */
@@ -1215,7 +1215,7 @@ function is_protected_endpoint() {
 	 * WordPress core. As such, it exclusively allows providing further protected endpoints in
 	 * addition to the admin backend, login pages and protected AJAX actions.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected.
 	 *                                    Default false.
@@ -1227,7 +1227,7 @@ function is_protected_endpoint() {
  * Determines whether we are currently handling an AJAX action that should be
  * protected against WSODs.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @return bool True if the current AJAX action should be protected.
  */
@@ -1358,7 +1358,7 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
 /**
  * Prunes the array of recorded extension errors.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param array $errors Array of errors to prune.
  * @return array Pruned array of errors.
@@ -1413,7 +1413,7 @@ function wp_prune_extension_errors( $errors ) {
 /**
  * Records the extension error as a database option.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @global array $wp_theme_directories
  *
@@ -1478,7 +1478,7 @@ function wp_record_extension_error( $error ) {
 /**
  * Forgets a previously recorded extension error again.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param string $type Type of the extension.
  * @param string $extension Relative path of the extension.
@@ -1539,7 +1539,7 @@ function wp_should_handle_error( $error ) {
  * Wraps the shutdown handler function so it can be made pluggable at a later
  * stage.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @return void
  */
@@ -1630,7 +1630,7 @@ function wp_shutdown_handler_wrapper() {
 			/**
 			 * Filters the message that the default PHP error page displays.
 			 *
-			 * @since 5.0.0
+			 * @since 5.1.0
 			 *
 			 * @param string $message HTML error message to display.
 			 */
@@ -1647,7 +1647,7 @@ function wp_shutdown_handler_wrapper() {
 /**
  * Registers the WordPress premature shutdown handler.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @return void
  */

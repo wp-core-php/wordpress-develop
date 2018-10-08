@@ -506,7 +506,7 @@ function is_plugin_inactive( $plugin ) {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return bool True, if in the list of paused plugins. False, not in the list.
@@ -528,7 +528,7 @@ function is_plugin_paused( $plugin ) {
 /**
  * Gets the error that was recorded for a paused plugin.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins
  *                       directory.
@@ -1036,7 +1036,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
  * be overwritten with the success message and the `pause_on_admin` option
  * will not be updated.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param string $plugin   Single plugin to resume.
  * @param string $redirect Optional. URL to redirect to.
@@ -2189,7 +2189,7 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
 /**
  * Renders an admin notice in case some plugins have been paused due to errors.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @return void
  */
