@@ -1372,7 +1372,7 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  * @return array Pruned array of errors.
  */
 function wp_prune_extension_errors( $errors ) {
-	foreach ( array( 'plugins', 'mu-plugins', 'themes' ) as $type ) {
+	foreach ( array( 'plugins', 'themes' ) as $type ) {
 		if ( ! array_key_exists( $type, $errors ) ) {
 			continue;
 		}
@@ -1401,9 +1401,6 @@ function wp_prune_extension_errors( $errors ) {
 					}
 				}
 
-				break;
-			case 'mu-plugins':
-				// TODO: Implement MU-plugin-specific behavior.
 				break;
 			case 'themes':
 				// TODO: Implement theme-specific behavior.
@@ -1437,16 +1434,12 @@ function wp_record_extension_error( $error ) {
 
 	$path = '';
 
-	$error_file      = wp_normalize_path( $error['file'] );
-	$wp_plugin_dir   = wp_normalize_path( WP_PLUGIN_DIR );
-	$wpmu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
+	$error_file    = wp_normalize_path( $error['file'] );
+	$wp_plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 
 	if ( 0 === strpos( $error_file, $wp_plugin_dir ) ) {
 		$type = 'plugins';
 		$path = str_replace( $wp_plugin_dir . '/', '', $error_file );
-	} elseif ( 0 === strpos( $error_file, $wpmu_plugin_dir ) ) {
-		$type = 'mu-plugins';
-		$path = str_replace( $wpmu_plugin_dir . '/', '', $error_file );
 	} else {
 		foreach ( $wp_theme_directories as $theme_directory ) {
 			$theme_directory = wp_normalize_path( $theme_directory );
