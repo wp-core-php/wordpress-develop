@@ -144,7 +144,9 @@ class WP_Paused_Extensions_Storage {
 					continue;
 				}
 
-				$paused_extensions[ substr( $meta_key, strlen( $this->meta_prefix ) ) ] = array_shift( $meta_values );
+				$error = maybe_unserialize( array_shift( $meta_values ) );
+
+				$paused_extensions[ substr( $meta_key, strlen( $this->meta_prefix ) ) ] = $error;
 			}
 
 			return $paused_extensions;
