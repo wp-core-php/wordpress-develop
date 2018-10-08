@@ -516,7 +516,7 @@ function is_plugin_paused( $plugin ) {
 		return false;
 	}
 
-	if ( ! is_plugin_active( $plugin ) || is_plugin_active_for_network( $plugin ) ) {
+	if ( ! is_plugin_active( $plugin ) && ! is_plugin_active_for_network( $plugin ) ) {
 		return false;
 	}
 
