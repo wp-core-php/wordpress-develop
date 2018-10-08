@@ -658,6 +658,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					$actions = array(
 						'network_active' => __( 'Network Active' ),
 					);
+					if ( ! $restrict_network_only && current_user_can( 'resume_plugin' ) && is_plugin_paused( $plugin_file ) ) {
+						/* translators: %s: plugin name */
+						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume execution of %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume execution' ) . '</a>';
+					}
 				} elseif ( $restrict_network_only ) {
 					$actions = array(
 						'network_only' => __( 'Network Only' ),

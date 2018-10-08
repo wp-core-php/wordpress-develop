@@ -455,7 +455,6 @@ function map_meta_cap( $cap, $user_id ) {
 		case 'deactivate_plugins':
 		case 'activate_plugin':
 		case 'deactivate_plugin':
-		case 'resume_plugin':
 			$caps[] = 'activate_plugins';
 			if ( is_multisite() ) {
 				// update_, install_, and delete_ are handled above with is_super_admin().
@@ -464,6 +463,10 @@ function map_meta_cap( $cap, $user_id ) {
 					$caps[] = 'manage_network_plugins';
 				}
 			}
+			break;
+		case 'resume_plugin':
+			// Even in a multisite, regular administrators should be able to resume a plugin.
+			$caps[] = 'activate_plugins';
 			break;
 		case 'delete_user':
 		case 'delete_users':
