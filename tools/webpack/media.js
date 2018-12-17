@@ -1,7 +1,8 @@
-var path        	= require( 'path' ),
-	webpack       	= require( 'webpack' ),
-	admin_files   	= {},
-	include_files 	= {};
+const UglifyJsPlugin = require( 'uglifyjs-webpack-plugin' );
+
+var path            = require( 'path' ),
+	admin_files     = {},
+	include_files   = {};
 
 include_files = {
 	'build/wp-includes/js/media-audiovideo.js': ['./src/js/_enqueues/wp/media/audiovideo.js'],
@@ -14,19 +15,28 @@ include_files = {
 	'build/wp-includes/js/media-views.min.js': ['./src/js/_enqueues/wp/media/views.js'],
 };
 
-module.exports = [
-	{
+const baseDir = path.join( __dirname, '../../' );
+
+module.exports = function( env = { environment: 'production', watch: false } ) {
+
+	const mediaConfig = {
+		mode: "production",
 		cache: true,
-		watch: false,
 		entry: Object.assign( admin_files, include_files ),
 		output: {
+			path: baseDir,
 			filename: '[name]',
 		},
-		plugins: [
-			new webpack.optimize.UglifyJsPlugin({
-				include: /\.min\.js$/,
-				minimize: true
-			})
-		]
-	}
-];
+		optimization: {
+			minimize: true,
+			minimizer: [
+				new UglifyJsPlugin( {
+					include: /\.min\.js$/,
+				} )
+			]
+		},
+		watch: env.watch,
+	};
+
+	return mediaConfig;
+};

@@ -1,7 +1,6 @@
 /* jshint node:true */
 /* globals Set */
-var webpackConfig = require( './webpack.config.prod' );
-var webpackDevConfig = require( './webpack.config.dev' );
+var webpackConfig = require( './webpack.config' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -11,6 +10,7 @@ module.exports = function(grunt) {
 		BUILD_DIR = 'build/',
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
+		nodesass = require( 'node-sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
 		buildFiles = [
 			'*.php',
@@ -372,6 +372,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
+					implementation: nodesass,
 					outputStyle: 'expanded'
 				}
 			}
@@ -390,6 +391,15 @@ module.exports = function(grunt) {
 					'!wp-admin/css/wp-admin*.css',
 					'wp-includes/css/*.css',
 					'wp-includes/js/mediaelement/wp-mediaelement.css'
+				]
+			},
+			dist: {
+				expand: true,
+				cwd: BUILD_DIR,
+				dest: BUILD_DIR,
+				ext: '.min.css',
+				src: [
+					'wp-includes/css/dist/*/*.css'
 				]
 			},
 			rtl: {
@@ -704,8 +714,10 @@ module.exports = function(grunt) {
 			}
 		},
 		webpack: {
-			prod: webpackConfig,
-			dev: webpackDevConfig
+			prod: webpackConfig( { environment: 'production' } ),
+			devProdTarget: webpackConfig( { environment: 'development', forceBuildTarget: 'build/wp-includes' } ),
+			dev: webpackConfig( { environment: 'development' } ),
+			watch: webpackConfig( { environment: 'development', watch: true } )
 		},
 		concat: {
 			tinymce: {
@@ -945,7 +957,8 @@ module.exports = function(grunt) {
 				files: {
 					src: [
 						BUILD_DIR + 'wp-{admin,includes}/**/*.js',
-						BUILD_DIR + 'wp-content/themes/twenty*/**/*.js'
+						BUILD_DIR + 'wp-content/themes/twenty*/**/*.js',
+						'!' + BUILD_DIR + 'wp-includes/js/dist/vendor/*.js'
 					]
 				}
 			},
@@ -1090,7 +1103,6 @@ module.exports = function(grunt) {
 			config: {
 				files: [
 					'Gruntfile.js',
-					'webpack-dev.config.js',
 					'webpack.config.js'
 				]
 			},
@@ -1346,7 +1358,6 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build', [
 		'clean:all',
-		'webpack:dev',
 		'copy:all',
 		'file_append',
 		'cssmin:core',
@@ -1360,6 +1371,9 @@ module.exports = function(grunt) {
 		'includes:emoji',
 		'includes:embed',
 		'usebanner',
+		'webpack:prod',
+		'webpack:devProdTarget',
+		'cssmin:dist',
 		'jsvalidate:build'
 	] );
 
