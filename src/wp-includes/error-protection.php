@@ -107,7 +107,7 @@ function wp_forget_extension_error( $type, $extension, $network_wide = false ) {
 	}
 
 	// Handle manually since the regular APIs do not expose this functionality.
-	if ( $network_wide ) {
+	if ( $network_wide && is_site_meta_supported() ) {
 		$site_meta_query_clause = call_user_func( $callback )->get_site_meta_query_clause( $extension );
 		return delete_metadata( 'blog', 0, $site_meta_query_clause['key'], '', true );
 	}
