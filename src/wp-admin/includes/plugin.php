@@ -2212,8 +2212,6 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
  * Renders an admin notice in case some plugins have been paused due to errors.
  *
  * @since 5.1.0
- *
- * @return void
  */
 function paused_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
