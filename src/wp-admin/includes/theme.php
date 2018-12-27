@@ -837,6 +837,28 @@ function count_paused_theme_sites_for_network( $theme ) {
 }
 
 /**
+ * Tries to resume a single theme.
+ *
+ * @since 5.1.0
+ *
+ * @param string $theme Single theme to resume.
+ * @return bool|WP_Error True on success, false if `$theme` was not paused,
+ *                       `WP_Error` on failure.
+ */
+function resume_theme( $theme ) {
+	$result = wp_forget_extension_error( 'themes', $theme );
+
+	if ( ! $result ) {
+		return new WP_Error(
+			'could_not_resume_theme',
+			__( 'Could not resume execution of the theme.' )
+		);
+	}
+
+	return true;
+}
+
+/**
  * Renders an admin notice in case some themes have been paused due to errors.
  *
  * @since 5.1.0
