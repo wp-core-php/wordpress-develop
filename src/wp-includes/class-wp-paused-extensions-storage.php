@@ -161,7 +161,7 @@ class WP_Paused_Extensions_Storage {
 	 * @since 5.1.0
 	 *
 	 * @param string $extension Optional. Plugin or theme directory name. If not provided, the clause
-	 *                          returned will query sites where any extension of the same name is paused.
+	 *                          returned will query sites where any extension of the same type is paused.
 	 * @return array A single clause to add to a meta query.
 	 */
 	public function get_site_meta_query_clause( $extension = '' ) {
