@@ -1084,9 +1084,7 @@ function resume_plugin( $plugin, $redirect = '', $network_wide = false ) {
 
 		// Load the plugin to test whether it throws a fatal error.
 		ob_start();
-		$plugin_path = WP_PLUGIN_DIR . '/' . $plugin;
-		wp_register_plugin_realpath( $plugin_path );
-		include_once $plugin_path;
+		plugin_sandbox_scrape( $plugin );
 		ob_clean();
 	}
 
