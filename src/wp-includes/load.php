@@ -759,6 +759,11 @@ function wp_get_active_and_valid_themes() {
 	 */
 	if ( is_protected_endpoint() ) {
 		$themes = wp_skip_paused_themes( $themes );
+
+		// If no active and valid themes exist, skip loading themes.
+		if ( empty( $themes ) ) {
+			add_filter( 'wp_using_themes', '__return_false' );
+		}
 	}
 
 	return $themes;
@@ -1255,6 +1260,24 @@ function wp_doing_ajax() {
 	 * @param bool $wp_doing_ajax Whether the current request is a WordPress Ajax request.
 	 */
 	return apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
+}
+
+/**
+ * Determines whether the current request should use themes.
+ *
+ * @since 5.1.0
+ *
+ * @return bool True if themes should be used, false otherwise.
+ */
+function wp_using_themes() {
+	/**
+	 * Filters whether the current request should use themes.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param bool $wp_using_themes Whether the current request should use themes.
+	 */
+	return apply_filters( 'wp_using_themes', defined( 'WP_USE_THEMES' ) && WP_USE_THEMES );
 }
 
 /**
