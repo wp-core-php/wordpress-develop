@@ -124,6 +124,37 @@ class WP_Paused_Extensions_Storage {
 	}
 
 	/**
+	 * Gets the error for an extension, if paused.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $extension Plugin or theme directory name.
+	 * @return array|null Error that is set, or null if the extension is not paused.
+	 */
+	public function get( $extension ) {
+		if ( ! $this->is_api_loaded() ) {
+			return null;
+		}
+
+		if ( is_multisite() && is_site_meta_supported() ) {
+			$error = get_site_meta( get_current_blog_id(), $this->meta_prefix . $extension, true );
+			if ( ! $error ) {
+				return null;
+			}
+
+			return $error;
+		}
+
+		$paused_extensions = $this->get_all();
+
+		if ( ! isset( $paused_extensions[ $extension ] ) ) {
+			return null;
+		}
+
+		return $paused_extensions[ $extension ];
+	}
+
+	/**
 	 * Gets the paused extensions with their errors.
 	 *
 	 * @since 5.1.0
