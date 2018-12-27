@@ -489,14 +489,12 @@ $GLOBALS['wp_locale_switcher'] = new WP_Locale_Switcher();
 $GLOBALS['wp_locale_switcher']->init();
 
 // Load the functions for the active theme, for both parent and child theme if applicable.
-if ( ! wp_installing() || 'wp-activate.php' === $pagenow ) {
-	if ( TEMPLATEPATH !== STYLESHEETPATH && file_exists( STYLESHEETPATH . '/functions.php' ) ) {
-		include( STYLESHEETPATH . '/functions.php' );
-	}
-	if ( file_exists( TEMPLATEPATH . '/functions.php' ) ) {
-		include( TEMPLATEPATH . '/functions.php' );
+foreach ( wp_get_active_and_valid_themes() as $theme ) {
+	if ( file_exists( $theme . '/functions.php' ) ) {
+		include $theme . '/functions.php';
 	}
 }
+unset( $theme );
 
 /**
  * Fires after the theme is loaded.

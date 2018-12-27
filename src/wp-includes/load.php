@@ -729,6 +729,71 @@ function wp_skip_paused_plugins( array $plugins ) {
 }
 
 /**
+ * Retrieves an array of active and valid themes.
+ *
+ * While upgrading or installing WordPress, no themes are returned.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @return array Array of paths to theme directories.
+ */
+function wp_get_active_and_valid_themes() {
+	global $pagenow;
+
+	$themes = array();
+
+	if ( wp_installing() && 'wp-activate.php' !== $pagenow ) {
+		return $themes;
+	}
+
+	if ( TEMPLATEPATH !== STYLESHEETPATH ) {
+		$themes[] = STYLESHEETPATH;
+	}
+
+	$themes[] = TEMPLATEPATH;
+
+	/*
+	 * Remove themes from the list of active themes when we're on an endpoint
+	 * that should be protected against WSODs and the theme is paused.
+	 */
+	if ( is_protected_endpoint() ) {
+		$themes = wp_skip_paused_themes( $themes );
+	}
+
+	return $themes;
+}
+
+/**
+ * Filters a given list of themes, removing any paused themes from it.
+ *
+ * @since 5.1.0
+ *
+ * @param array $themes List of absolute theme directory paths.
+ * @return array Filtered value of $themes, without any paused themes.
+ */
+function wp_skip_paused_themes( array $themes ) {
+	$paused_themes = wp_paused_themes()->get_all();
+
+	if ( empty( $paused_themes ) ) {
+		return $themes;
+	}
+
+	foreach ( $themes as $index => $theme ) {
+		$theme = basename( $theme );
+
+		if ( array_key_exists( $theme, $paused_themes ) ) {
+			unset( $themes[ $index ] );
+
+			// Store list of paused themes for displaying an admin notice.
+			$GLOBALS['_paused_themes'][ $theme ] = $paused_themes[ $theme ];
+		}
+	}
+
+	return $themes;
+}
+
+/**
  * Set internal encoding.
  *
  * In most cases the default internal encoding is latin1, which is
