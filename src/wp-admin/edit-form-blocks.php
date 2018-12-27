@@ -178,10 +178,7 @@ $styles = array(
 	),
 );
 
-/*
- * Set a locale specific default font.
- * Translators: Use this to specify the CSS font family for the default font
- */
+/* Translators: Use this to specify the CSS font family for the default font */
 $locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font' );
 $styles[]           = array(
 	'css' => "body { font-family: '$locale_font_family' }",
@@ -197,11 +194,13 @@ if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 				);
 			}
 		} else {
-			$file     = get_theme_file_path( $style );
-			$styles[] = array(
-				'css'     => file_get_contents( get_theme_file_path( $style ) ),
-				'baseURL' => get_theme_file_uri( $style ),
-			);
+			$file = get_theme_file_path( $style );
+			if ( file_exists( $file ) ) {
+				$styles[] = array(
+					'css'     => file_get_contents( $file ),
+					'baseURL' => get_theme_file_uri( $style ),
+				);
+			}
 		}
 	}
 }
@@ -283,6 +282,7 @@ $editor_settings = array(
 	'allowedMimeTypes'       => get_allowed_mime_types(),
 	'styles'                 => $styles,
 	'imageSizes'             => $available_image_sizes,
+	'richEditingEnabled'     => user_can_richedit(),
 	'postLock'               => $lock_details,
 	'postLockUtils'          => array(
 		'nonce'       => wp_create_nonce( 'lock-post_' . $post->ID ),

@@ -49,10 +49,11 @@ function mapVendorCopies( vendors, buildTarget ) {
 	} ) );
 }
 
-module.exports = function( env = { environment: 'production', watch: false, forceBuildTarget: false } ) {
+module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
 	const mode = env.environment;
 	const suffix = mode === 'production' ? '.min' : '';
-	const buildTarget = env.forceBuildTarget ? env.forceBuildTarget : ( mode === 'production' ? 'build' : 'src' ) + '/wp-includes';
+	let buildTarget = env.buildTarget ? env.buildTarget : ( mode === 'production' ? 'build' : 'src' );
+	buildTarget = buildTarget  + '/wp-includes';
 
 	const packages = [
 		'api-fetch',
@@ -165,7 +166,7 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 		to: join( baseDir, `${ buildTarget }/css/dist/${ packageName }/` ),
 		flatten: true,
 		transform: ( content ) => {
-			if ( config.mode === 'production' ) {
+			if ( mode === 'production' ) {
 				return postcss( [
 					require( 'cssnano' )( {
 						preset: 'default',
@@ -176,6 +177,13 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 			}
 
 			return content;
+		},
+		transformPath: ( targetPath, sourcePath ) => {
+			if ( mode === 'production' ) {
+				return targetPath.replace( /\.css$/, '.min.css' );
+			}
+
+			return targetPath;
 		}
 	} ) );
 
@@ -266,6 +274,14 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 
 	if ( config.mode !== 'production' ) {
 		config.devtool = process.env.SOURCEMAP || 'source-map';
+	}
+
+	if ( mode === 'development' && env.buildTarget === 'build/' ) {
+		delete config.devtool;
+		config.mode = 'production';
+		config.optimization = {
+			minimize: false
+		};
 	}
 
 	if ( config.mode === 'development' ) {

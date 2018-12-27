@@ -196,6 +196,27 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 }
 
 /**
+ * Returns only allowed post data fields
+ *
+ * @since 4.9.9
+ *
+ * @param array $post_data Array of post data. Defaults to the contents of $_POST.
+ * @return object|bool WP_Error on failure, true on success.
+ */
+function _wp_get_allowed_postdata( $post_data = null ) {
+	if ( empty( $post_data ) ) {
+		$post_data = $_POST;
+	}
+
+	// Pass through errors
+	if ( is_wp_error( $post_data ) ) {
+		return $post_data;
+	}
+
+	return array_diff_key( $post_data, array_flip( array( 'meta_input', 'file', 'guid' ) ) );
+}
+
+/**
  * Update an existing post with values provided in $_POST.
  *
  * @since 1.5.0
@@ -273,6 +294,7 @@ function edit_post( $post_data = null ) {
 	if ( is_wp_error( $post_data ) ) {
 		wp_die( $post_data->get_error_message() );
 	}
+	$translated = _wp_get_allowed_postdata( $post_data );
 
 	// Post Formats
 	if ( isset( $post_data['post_format'] ) ) {
@@ -362,7 +384,7 @@ function edit_post( $post_data = null ) {
 		$attachment_data = isset( $post_data['attachments'][ $post_ID ] ) ? $post_data['attachments'][ $post_ID ] : array();
 
 		/** This filter is documented in wp-admin/includes/media.php */
-		$post_data = apply_filters( 'attachment_fields_to_save', $post_data, $attachment_data );
+		$translated = apply_filters( 'attachment_fields_to_save', $translated, $attachment_data );
 	}
 
 	// Convert taxonomy input to term IDs, to avoid ambiguity.
@@ -371,7 +393,7 @@ function edit_post( $post_data = null ) {
 			$tax_object = get_taxonomy( $taxonomy );
 
 			if ( $tax_object && isset( $tax_object->meta_box_sanitize_cb ) ) {
-				$post_data['tax_input'][ $taxonomy ] = call_user_func_array( $tax_object->meta_box_sanitize_cb, array( $taxonomy, $terms ) );
+				$translated['tax_input'][ $taxonomy ] = call_user_func_array( $tax_object->meta_box_sanitize_cb, array( $taxonomy, $terms ) );
 			}
 		}
 	}
@@ -380,18 +402,18 @@ function edit_post( $post_data = null ) {
 
 	update_post_meta( $post_ID, '_edit_last', get_current_user_id() );
 
-	$success = wp_update_post( $post_data );
+	$success = wp_update_post( $translated );
 	// If the save failed, see if we can sanity check the main fields and try again
 	if ( ! $success && is_callable( array( $wpdb, 'strip_invalid_text_for_column' ) ) ) {
 		$fields = array( 'post_title', 'post_content', 'post_excerpt' );
 
 		foreach ( $fields as $field ) {
-			if ( isset( $post_data[ $field ] ) ) {
-				$post_data[ $field ] = $wpdb->strip_invalid_text_for_column( $wpdb->posts, $field, $post_data[ $field ] );
+			if ( isset( $translated[ $field ] ) ) {
+				$translated[ $field ] = $wpdb->strip_invalid_text_for_column( $wpdb->posts, $field, $translated[ $field ] );
 			}
 		}
 
-		wp_update_post( $post_data );
+		wp_update_post( $translated );
 	}
 
 	// Now that we have an ID we can fix any attachment anchor hrefs
@@ -569,9 +591,9 @@ function bulk_edit_posts( $post_data = null ) {
 			unset( $post_data['tax_input']['category'] );
 		}
 
+		$post_data['post_ID']        = $post_ID;
 		$post_data['post_type']      = $post->post_type;
 		$post_data['post_mime_type'] = $post->post_mime_type;
-		$post_data['guid']           = $post->guid;
 
 		foreach ( array( 'comment_status', 'ping_status', 'post_author' ) as $field ) {
 			if ( ! isset( $post_data[ $field ] ) ) {
@@ -579,17 +601,15 @@ function bulk_edit_posts( $post_data = null ) {
 			}
 		}
 
-		$post_data['ID']      = $post_ID;
-		$post_data['post_ID'] = $post_ID;
-
 		$post_data = _wp_translate_postdata( true, $post_data );
 		if ( is_wp_error( $post_data ) ) {
 			$skipped[] = $post_ID;
 			continue;
 		}
+		$post_data = _wp_get_allowed_postdata( $post_data );
 
-		if ( isset( $post_data['post_format'] ) ) {
-			set_post_format( $post_ID, $post_data['post_format'] );
+		if ( isset( $shared_post_data['post_format'] ) ) {
+			set_post_format( $post_ID, $shared_post_data['post_format'] );
 			unset( $post_data['tax_input']['post_format'] );
 		}
 
@@ -806,9 +826,10 @@ function wp_write_post() {
 	if ( is_wp_error( $translated ) ) {
 		return $translated;
 	}
+	$translated = _wp_get_allowed_postdata( $translated );
 
 	// Create the post.
-	$post_ID = wp_insert_post( $_POST );
+	$post_ID = wp_insert_post( $translated );
 	if ( is_wp_error( $post_ID ) ) {
 		return $post_ID;
 	}
@@ -1078,17 +1099,23 @@ function wp_edit_posts_query( $q = false ) {
 	}
 
 	$avail_post_stati = get_available_post_statuses( $post_type );
+	$post_status      = '';
+	$perm             = '';
 
 	if ( isset( $q['post_status'] ) && in_array( $q['post_status'], $post_stati ) ) {
 		$post_status = $q['post_status'];
 		$perm        = 'readable';
 	}
 
+	$orderby = '';
+
 	if ( isset( $q['orderby'] ) ) {
 		$orderby = $q['orderby'];
 	} elseif ( isset( $q['post_status'] ) && in_array( $q['post_status'], array( 'pending', 'draft' ) ) ) {
 		$orderby = 'modified';
 	}
+
+	$order = '';
 
 	if ( isset( $q['order'] ) ) {
 		$order = $q['order'];
@@ -1130,7 +1157,7 @@ function wp_edit_posts_query( $q = false ) {
 	$query = compact( 'post_type', 'post_status', 'perm', 'order', 'orderby', 'posts_per_page' );
 
 	// Hierarchical types require special args.
-	if ( is_post_type_hierarchical( $post_type ) && ! isset( $orderby ) ) {
+	if ( is_post_type_hierarchical( $post_type ) && empty( $orderby ) ) {
 		$query['orderby']                = 'menu_order title';
 		$query['order']                  = 'asc';
 		$query['posts_per_page']         = -1;
@@ -1768,6 +1795,7 @@ function wp_create_post_autosave( $post_data ) {
 	if ( is_wp_error( $post_data ) ) {
 		return $post_data;
 	}
+	$post_data = _wp_get_allowed_postdata( $post_data );
 
 	$post_author = get_current_user_id();
 
@@ -2259,11 +2287,6 @@ function the_block_editor_meta_boxes() {
 					continue;
 				}
 
-				// If a meta box doesn't work in the block editor, don't show it in the block editor.
-				if ( isset( $meta_box['args']['__block_editor_compatible_meta_box'] ) && ! $meta_box['args']['__block_editor_compatible_meta_box'] ) {
-					continue;
-				}
-
 				$meta_boxes_per_location[ $location ][] = array(
 					'id'    => $meta_box['id'],
 					'title' => $meta_box['title'],
@@ -2344,36 +2367,22 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	 * Some meta boxes hook into these actions to add hidden input fields in the classic post form. For backwards
 	 * compatibility, we can capture the output from these actions, and extract the hidden input fields.
 	 */
-	$actions = array(
-		'edit_form_after_title',
-		'edit_form_advanced',
-	);
+	ob_start();
+	/** This filter is documented in wp-admin/edit-form-advanced.php */
+	do_action( 'edit_form_after_title', $post );
+	/** This filter is documented in wp-admin/edit-form-advanced.php */
+	do_action( 'edit_form_advanced', $post );
+	$classic_output = ob_get_clean();
 
-	foreach ( $actions as $action ) {
-		ob_start();
-		do_action_deprecated(
-			$action,
-			array( $post ),
-			'5.0.0',
-			'block_editor_meta_box_hidden_fields',
-			__( 'This action is still supported in the classic editor, but is deprecated in the block editor.' )
-		);
-		$classic_output = ob_get_clean();
-
-		if ( ! $classic_output ) {
+	$classic_elements = wp_html_split( $classic_output );
+	$hidden_inputs    = '';
+	foreach ( $classic_elements as $element ) {
+		if ( 0 !== strpos( $element, '<input ' ) ) {
 			continue;
 		}
 
-		$classic_elements = wp_html_split( $classic_output );
-		$hidden_inputs    = '';
-		foreach ( $classic_elements as $element ) {
-			if ( 0 !== strpos( $element, '<input ' ) ) {
-				continue;
-			}
-
-			if ( preg_match( '/\stype=[\'"]hidden[\'"]\s/', $element ) ) {
-				echo $element;
-			}
+		if ( preg_match( '/\stype=[\'"]hidden[\'"]\s/', $element ) ) {
+			echo $element;
 		}
 	}
 	?>
