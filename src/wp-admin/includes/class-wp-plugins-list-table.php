@@ -890,7 +890,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							);
 						}
 
-						echo sprintf( '<p><span class="dashicons dashicons-warning"></span> <strong>%s</strong></p>', $notice_text );
+						printf( '<p><span class="dashicons dashicons-warning"></span> <strong>%s</strong></p>', $notice_text );
 
 						$error = wp_get_plugin_error( $plugin_file );
 
@@ -906,7 +906,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 							$error['type'] = $core_errors[ $error['type'] ];
 
-							echo sprintf(
+							printf(
 								'<div class="error-display"><p>%s</p></div>',
 								sprintf(
 									/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */

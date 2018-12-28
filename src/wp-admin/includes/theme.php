@@ -876,7 +876,7 @@ function paused_themes_notice() {
 		return;
 	}
 
-	echo sprintf(
+	printf(
 		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p>%s</p></div>',
 		__( 'One or more themes failed to load properly.' ),
 		__( 'You can find more details and make changes on the Themes screen.' ),
