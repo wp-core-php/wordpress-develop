@@ -873,7 +873,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					 * @param array    $plugin_data An array of plugin data.
 					 * @param string   $status      Status of the plugin. Defaults are 'All', 'Active',
 					 *                              'Inactive', 'Recently Activated', 'Upgrade', 'Must-Use',
-					 *                              'Drop-ins', 'Search', 'Paused'
+					 *                              'Drop-ins', 'Search', 'Paused'.
 					 */
 					$plugin_meta = apply_filters( 'plugin_row_meta', $plugin_meta, $plugin_file, $plugin_data, $status );
 					echo implode( ' | ', $plugin_meta );
@@ -969,7 +969,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		 * @param array  $plugin_data An array of plugin data.
 		 * @param string $status      Status of the plugin. Defaults are 'All', 'Active',
 		 *                            'Inactive', 'Recently Activated', 'Upgrade', 'Must-Use',
-		 *                            'Drop-ins', 'Search', 'Paused'
+		 *                            'Drop-ins', 'Search', 'Paused'.
 		 */
 		do_action( "after_plugin_row_{$plugin_file}", $plugin_file, $plugin_data, $status );
 	}
