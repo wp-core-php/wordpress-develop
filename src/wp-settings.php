@@ -18,6 +18,7 @@ define( 'WPINC', 'wp-includes' );
 // Include files required for initialization.
 require( ABSPATH . WPINC . '/load.php' );
 require( ABSPATH . WPINC . '/class-wp-paused-extensions-storage.php' );
+require( ABSPATH . WPINC . '/class-wp-shutdown-handler.php' );
 require( ABSPATH . WPINC . '/error-protection.php' );
 require( ABSPATH . WPINC . '/default-constants.php' );
 require_once( ABSPATH . WPINC . '/plugin.php' );
@@ -44,16 +45,6 @@ global $blog_id;
 
 // Set initial default constants including WP_MEMORY_LIMIT, WP_MAX_MEMORY_LIMIT, WP_DEBUG, SCRIPT_DEBUG, WP_CONTENT_DIR and WP_CACHE.
 wp_initial_constants();
-
-/*
- * Allow an optional shutdown handler to be included through a pluggable file.
- * This file should register a function `wp_handle_shutdown( $context )` that
- * returns a boolean value. If the return value evaluates to false, the default
- * shutdown handler will not be executed.
- */
-if ( is_readable( WP_CONTENT_DIR . '/shutdown-handler.php' ) ) {
-	include WP_CONTENT_DIR . '/shutdown-handler.php';
-}
 
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
 wp_check_php_mysql_versions();
