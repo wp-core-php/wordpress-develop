@@ -1347,6 +1347,19 @@ function is_protected_ajax_action() {
 		'update-theme',           // Update an existing theme.
 	);
 
+	/**
+	 * Filters the array of protected AJAX actions.
+	 *
+	 * This filter is only fired when doing AJAX and the AJAX request has an
+	 * 'action' property.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param array $actions_to_protect Array of strings with AJAX actions to
+	 *                                  protect.
+	 */
+	$actions_to_protect = (array) apply_filters( 'wp_protected_ajax_actions', $actions_to_protect );
+
 	if ( ! in_array( $_REQUEST['action'], $actions_to_protect, true ) ) {
 		return false;
 	}
