@@ -1281,8 +1281,7 @@ function wp_using_themes() {
 }
 
 /**
- * Determines whether we are currently on an endpoint that should be protected
- * against WSODs.
+ * Determines whether we are currently on an endpoint that should be protected against WSODs.
  *
  * @since 5.1.0
  *
@@ -1313,15 +1312,13 @@ function is_protected_endpoint() {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected.
-	 *                                    Default false.
+	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected. Default false.
 	 */
 	return (bool) apply_filters( 'is_protected_endpoint', false );
 }
 
 /**
- * Determines whether we are currently handling an AJAX action that should be
- * protected against WSODs.
+ * Determines whether we are currently handling an AJAX action that should be protected against WSODs.
  *
  * @since 5.1.0
  *
@@ -1350,13 +1347,11 @@ function is_protected_ajax_action() {
 	/**
 	 * Filters the array of protected AJAX actions.
 	 *
-	 * This filter is only fired when doing AJAX and the AJAX request has an
-	 * 'action' property.
+	 * This filter is only fired when doing AJAX and the AJAX request has an 'action' property.
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param array $actions_to_protect Array of strings with AJAX actions to
-	 *                                  protect.
+	 * @param array $actions_to_protect Array of strings with AJAX actions to protect.
 	 */
 	$actions_to_protect = (array) apply_filters( 'wp_protected_ajax_actions', $actions_to_protect );
 

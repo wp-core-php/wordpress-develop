@@ -84,7 +84,7 @@ function wp_record_extension_error( $error ) {
 	$parts     = explode( '/', $path );
 	$extension = array_shift( $parts );
 
-	return call_user_func( $callback )->add( $extension, $error );
+	return call_user_func( $callback )->record( $extension, $error );
 }
 
 /**
@@ -120,7 +120,7 @@ function wp_forget_extension_error( $type, $extension, $network_wide = false ) {
 		return delete_metadata( 'blog', 0, $site_meta_query_clause['key'], '', true );
 	}
 
-	return call_user_func( $callback )->remove( $extension );
+	return call_user_func( $callback )->forget( $extension );
 }
 
 /**

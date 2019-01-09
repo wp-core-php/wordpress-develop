@@ -43,7 +43,10 @@ class WP_Paused_Extensions_Storage {
 	}
 
 	/**
-	 * Add an extension error.
+	 * Records an extension error.
+	 *
+	 * Only one error is stored per extension, with subsequent errors for the same extension overriding the
+	 * previously stored error.
 	 *
 	 * @since 5.1.0
 	 *
@@ -58,7 +61,7 @@ class WP_Paused_Extensions_Storage {
 	 * }
 	 * @return bool True on success, false on failure.
 	 */
-	public function add( $extension, $error ) {
+	public function record( $extension, $error ) {
 		if ( ! $this->is_api_loaded() ) {
 			return false;
 		}
@@ -85,14 +88,14 @@ class WP_Paused_Extensions_Storage {
 	}
 
 	/**
-	 * Remove an extension error.
+	 * Forgets a previously recorded extension error.
 	 *
 	 * @since 5.1.0
 	 *
 	 * @param string $extension Plugin or theme directory name.
 	 * @return bool True on success, false on failure.
 	 */
-	public function remove( $extension ) {
+	public function forget( $extension ) {
 		if ( ! $this->is_api_loaded() ) {
 			return false;
 		}
