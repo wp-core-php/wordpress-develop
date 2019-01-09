@@ -140,20 +140,21 @@ class WP_Shutdown_Handler {
 	 * @return string Error message HTML output.
 	 */
 	protected function get_error_message_markup() {
-		// Retrieve messages separately to cover the case where `__()` is not available.
-		$i18n = $this->get_i18n();
+		if ( ! function_exists( '__' ) ) {
+			function __( $text ) { return $text; }
+		}
 
 		$message = sprintf(
 			'<p>%s</p>',
-			$i18n['The site is experiencing technical difficulties.']
+			__( 'The site is experiencing technical difficulties.' )
 		);
 
 		if ( function_exists( 'admin_url' ) ) {
 			$message .= sprintf(
 				'<hr><p><em>%s <a href="%s">%s</a></em></p>',
-				$i18n['Are you the site owner?'],
+				__( 'Are you the site owner?' ),
 				admin_url(),
-				$i18n['Log into the admin backend to fix this.']
+				__( 'Log into the admin backend to fix this.' )
 			);
 		}
 
@@ -169,27 +170,5 @@ class WP_Shutdown_Handler {
 		}
 
 		return $message;
-	}
-
-	/**
-	 * Gets translatable error message strings, or non-translated versions if `__()` is not available.
-	 *
-	 * Because the PHP error handler may potentially run very early, it is not guaranteed that {@see __()} is already
-	 * loaded. Therefore the translatable strings are centrally managed here, rather than where they are actually used.
-	 *
-	 * @since 5.1.0
-	 *
-	 * @return array Associative array of $message => $translated_message pairs.
-	 */
-	private function get_i18n() {
-		if ( ! function_exists( '__' ) ) {
-			function __( $text ) { return $text; }
-		}
-
-		return array(
-			__( 'The site is experiencing technical difficulties.' ),
-			__( 'Are you the site owner?' ),
-			__( 'Log into the admin backend to fix this.' ),
-		);
 	}
 }
