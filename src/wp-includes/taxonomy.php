@@ -333,7 +333,7 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  * @since 4.5.0 Introduced `publicly_queryable` argument.
  * @since 4.7.0 Introduced `show_in_rest`, 'rest_base' and 'rest_controller_class'
  *              arguments to register the Taxonomy in REST API.
- * @since 5.0.0 Introduced `meta_box_sanitize_cb` argument.
+ * @since 5.1.0 Introduced `meta_box_sanitize_cb` argument.
  *
  * @global array $wp_taxonomies Registered taxonomies.
  *
@@ -4574,7 +4574,7 @@ function wp_check_term_hierarchy_for_loops( $parent, $term_id, $taxonomy ) {
 /**
  * Determines whether a taxonomy is considered "viewable".
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param string|WP_Taxonomy $taxonomy Taxonomy name or object.
  * @return bool Whether the taxonomy should be considered viewable.
