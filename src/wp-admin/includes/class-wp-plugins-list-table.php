@@ -428,27 +428,21 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			switch ( $type ) {
 				case 'all':
-					/* translators: %s: plugin count */
 					$text = _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'plugins' );
 					break;
 				case 'active':
-					/* translators: %s: plugin count */
 					$text = _n( 'Active <span class="count">(%s)</span>', 'Active <span class="count">(%s)</span>', $count );
 					break;
 				case 'recently_activated':
-					/* translators: %s: plugin count */
 					$text = _n( 'Recently Active <span class="count">(%s)</span>', 'Recently Active <span class="count">(%s)</span>', $count );
 					break;
 				case 'inactive':
-					/* translators: %s: plugin count */
 					$text = _n( 'Inactive <span class="count">(%s)</span>', 'Inactive <span class="count">(%s)</span>', $count );
 					break;
 				case 'mustuse':
-					/* translators: %s: plugin count */
 					$text = _n( 'Must-Use <span class="count">(%s)</span>', 'Must-Use <span class="count">(%s)</span>', $count );
 					break;
 				case 'dropins':
-					/* translators: %s: plugin count */
 					$text = _n( 'Drop-ins <span class="count">(%s)</span>', 'Drop-ins <span class="count">(%s)</span>', $count );
 					break;
 				case 'paused':
@@ -456,7 +450,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					$text = _n( 'Paused <span class="count">(%s)</span>', 'Paused <span class="count">(%s)</span>', $count );
 					break;
 				case 'upgrade':
-					/* translators: %s: plugin count */
 					$text = _n( 'Update Available <span class="count">(%s)</span>', 'Update Available <span class="count">(%s)</span>', $count );
 					break;
 			}
