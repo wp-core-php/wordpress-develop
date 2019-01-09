@@ -63,10 +63,6 @@ class WP_Paused_Extensions_Storage {
 			return false;
 		}
 
-		if ( $this->is_security_related_extension( $extension ) ) {
-			return false;
-		}
-
 		if ( is_multisite() && is_site_meta_supported() ) {
 			// Do not update if the error is already stored.
 			if ( get_site_meta( get_current_blog_id(), $this->meta_prefix . $extension, true ) === $error ) {
@@ -188,24 +184,6 @@ class WP_Paused_Extensions_Storage {
 		}
 
 		return (array) get_option( $this->option_name, array() );
-	}
-
-	/**
-	 * Check whether the extension to be recorded is marked as being related to
-	 * security functionality.
-	 *
-	 * Deactivating such an extension might open up an attack vector, so we skip
-	 * these and prefer to let the site break instead.
-	 *
-	 * @param string $extension Extension to check.
-	 * @return bool Whether the extension is related to security.
-	 */
-	protected function is_security_related_extension( $extension ) {
-		$filtered_extensions = array(
-			'better-wp-security'
-		);
-
-		return in_array( $extension, $filtered_extensions, true );
 	}
 
 	/**
