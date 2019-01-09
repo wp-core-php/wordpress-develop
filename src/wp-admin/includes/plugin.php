@@ -31,6 +31,7 @@
  *     Network: Optional. Specify "Network: true" to require that a plugin is activated
  *          across all sites in an installation. This will prevent a plugin from being
  *          activated on a single site when Multisite is enabled.
+ *     Allow Pausing: Optional. Specify "Allow Pausing: false" to disable extension pausing.
  *      * / # Remove the space to close comment
  *
  * Some users have issues with opening large files and manipulating the contents
@@ -46,6 +47,7 @@
  * reading.
  *
  * @since 1.5.0
+ * @since 5.1.0 Added 'AllowPausing' header.
  *
  * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
@@ -54,31 +56,33 @@
  * @return array {
  *     Plugin data. Values will be empty if not supplied by the plugin.
  *
- *     @type string $Name        Name of the plugin. Should be unique.
- *     @type string $Title       Title of the plugin and link to the plugin's site (if set).
- *     @type string $Description Plugin description.
- *     @type string $Author      Author's name.
- *     @type string $AuthorURI   Author's website address (if set).
- *     @type string $Version     Plugin version.
- *     @type string $TextDomain  Plugin textdomain.
- *     @type string $DomainPath  Plugins relative directory path to .mo files.
- *     @type bool   $Network     Whether the plugin can only be activated network-wide.
+ *     @type string $Name         Name of the plugin. Should be unique.
+ *     @type string $Title        Title of the plugin and link to the plugin's site (if set).
+ *     @type string $Description  Plugin description.
+ *     @type string $Author       Author's name.
+ *     @type string $AuthorURI    Author's website address (if set).
+ *     @type string $Version      Plugin version.
+ *     @type string $TextDomain   Plugin textdomain.
+ *     @type string $DomainPath   Plugins relative directory path to .mo files.
+ *     @type bool   $Network      Whether the plugin can only be activated network-wide.
+ *     @type bool   $AllowPausing Extension pausing support.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 
 	$default_headers = array(
-		'Name'        => 'Plugin Name',
-		'PluginURI'   => 'Plugin URI',
-		'Version'     => 'Version',
-		'Description' => 'Description',
-		'Author'      => 'Author',
-		'AuthorURI'   => 'Author URI',
-		'TextDomain'  => 'Text Domain',
-		'DomainPath'  => 'Domain Path',
-		'Network'     => 'Network',
+		'Name'         => 'Plugin Name',
+		'PluginURI'    => 'Plugin URI',
+		'Version'      => 'Version',
+		'Description'  => 'Description',
+		'Author'       => 'Author',
+		'AuthorURI'    => 'Author URI',
+		'TextDomain'   => 'Text Domain',
+		'DomainPath'   => 'Domain Path',
+		'Network'      => 'Network',
+		'AllowPausing' => 'Allow Pausing',
 		// Site Wide Only is deprecated in favor of Network.
-		'_sitewide'   => 'Site Wide Only',
+		'_sitewide'    => 'Site Wide Only',
 	);
 
 	$plugin_data = get_file_data( $plugin_file, $default_headers, 'plugin' );
@@ -90,6 +94,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		$plugin_data['Network'] = $plugin_data['_sitewide'];
 	}
 	$plugin_data['Network'] = ( 'true' == strtolower( $plugin_data['Network'] ) );
+	$plugin_data['AllowPausing'] = 'false' !== strtolower( $plugin_data['AllowPausing'] );
 	unset( $plugin_data['_sitewide'] );
 
 	// If no text domain is defined fall back to the plugin slug.

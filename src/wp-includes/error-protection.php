@@ -67,6 +67,17 @@ function wp_record_extension_error( $error ) {
 	if ( 0 === strpos( $error_file, $wp_plugin_dir ) ) {
 		$callback = 'wp_paused_plugins';
 		$path     = str_replace( $wp_plugin_dir . '/', '', $error_file );
+
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		}
+
+		$plugin_data = get_plugin_data( $wp_plugin_dir . '/' . $path, false, false );
+
+		if ( ! $plugin_data['AllowPausing'] ) {
+			return false;
+		}
+
 	} else {
 		foreach ( $wp_theme_directories as $theme_directory ) {
 			$theme_directory = wp_normalize_path( $theme_directory );
