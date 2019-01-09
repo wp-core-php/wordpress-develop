@@ -43,7 +43,7 @@ class WP_Paused_Extensions_Storage {
 	}
 
 	/**
-	 * Sets an extension error.
+	 * Add an extension error.
 	 *
 	 * @since 5.1.0
 	 *
@@ -58,7 +58,7 @@ class WP_Paused_Extensions_Storage {
 	 * }
 	 * @return bool True on success, false on failure.
 	 */
-	public function set( $extension, $error ) {
+	public function add( $extension, $error ) {
 		if ( ! $this->is_api_loaded() ) {
 			return false;
 		}
@@ -85,14 +85,14 @@ class WP_Paused_Extensions_Storage {
 	}
 
 	/**
-	 * Unsets an extension error.
+	 * Remove an extension error.
 	 *
 	 * @since 5.1.0
 	 *
 	 * @param string $extension Plugin or theme directory name.
 	 * @return bool True on success, false on failure.
 	 */
-	public function unset( $extension ) {
+	public function remove( $extension ) {
 		if ( ! $this->is_api_loaded() ) {
 			return false;
 		}
@@ -113,7 +113,7 @@ class WP_Paused_Extensions_Storage {
 			return true;
 		}
 
-		// Clean up the entire option if we're unsetting the only error.
+		// Clean up the entire option if we're removing the only error.
 		if ( count( $paused_extensions ) === 1 ) {
 			return delete_option( $this->option_name );
 		}
@@ -129,7 +129,7 @@ class WP_Paused_Extensions_Storage {
 	 * @since 5.1.0
 	 *
 	 * @param string $extension Plugin or theme directory name.
-	 * @return array|null Error that is set, or null if the extension is not paused.
+	 * @return array|null Error that is stored, or null if the extension is not paused.
 	 */
 	public function get( $extension ) {
 		if ( ! $this->is_api_loaded() ) {
