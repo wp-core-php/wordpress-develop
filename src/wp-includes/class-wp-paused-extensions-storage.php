@@ -209,7 +209,7 @@ class WP_Paused_Extensions_Storage {
 	 * @return bool True if the API is loaded, false otherwise.
 	 */
 	protected function is_api_loaded() {
-		if ( is_multisite() ) {
+		if ( function_exists( 'is_multisite' ) && is_multisite() ) {
 			return function_exists( 'is_site_meta_supported' ) && function_exists( 'get_site_meta' );
 		}
 
