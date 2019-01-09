@@ -638,7 +638,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 					if ( current_user_can( 'manage_network_plugins' ) && count_paused_plugin_sites_for_network( $plugin_file ) ) {
 						/* translators: %s: plugin name */
-						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume network execution of %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume network execution' ) . '</a>';
+						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Network Resume %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Resume' ) . '</a>';
 					}
 				} else {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
@@ -647,7 +647,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 					if ( current_user_can( 'manage_network_plugins' ) && count_paused_plugin_sites_for_network( $plugin_file ) ) {
 						/* translators: %s: plugin name */
-						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume network execution of %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume network execution' ) . '</a>';
+						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Network Resume %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Resume' ) . '</a>';
 					}
 					if ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $plugin_file ) ) {
 						/* translators: %s: plugin name */
@@ -661,7 +661,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					);
 					if ( ! $restrict_network_only && current_user_can( 'resume_plugin' ) && is_plugin_paused( $plugin_file ) ) {
 						/* translators: %s: plugin name */
-						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume execution of %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume execution' ) . '</a>';
+						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume' ) . '</a>';
 					}
 				} elseif ( $restrict_network_only ) {
 					$actions = array(
@@ -674,7 +674,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 					if ( current_user_can( 'resume_plugin' ) && is_plugin_paused( $plugin_file ) ) {
 						/* translators: %s: plugin name */
-						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume execution of %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume execution' ) . '</a>';
+						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume' ) . '</a>';
 					}
 				} else {
 					if ( current_user_can( 'activate_plugin', $plugin_file ) ) {

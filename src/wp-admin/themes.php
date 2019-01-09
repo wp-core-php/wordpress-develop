@@ -40,7 +40,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		if ( ! current_user_can( 'resume_themes' ) ) {
 			wp_die(
 				'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
-				'<p>' . __( 'Sorry, you are not allowed to resume this item.' ) . '</p>',
+				'<p>' . __( 'Sorry, you are not allowed to resume this theme.' ) . '</p>',
 				403
 			);
 		}
@@ -60,7 +60,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		if ( ! current_user_can( 'delete_themes' ) ) {
 			wp_die(
 				'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
-				'<p>' . __( 'Sorry, you are not allowed to resume execution of this theme.' ) . '</p>',
+				'<p>' . __( 'Sorry, you are not allowed to delete this item.' ) . '</p>',
 				403
 			);
 		}

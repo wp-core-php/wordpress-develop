@@ -1093,7 +1093,7 @@ function resume_plugin( $plugin, $redirect = '', $network_wide = false ) {
 	if ( ! $result ) {
 		return new WP_Error(
 			'could_not_resume_plugin',
-			__( 'Could not resume execution of the plugin.' )
+			__( 'Could not resume the plugin.' )
 		);
 	}
 

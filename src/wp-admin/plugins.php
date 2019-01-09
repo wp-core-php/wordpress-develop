@@ -391,7 +391,7 @@ if ( $action ) {
 
 		case 'resume':
 			if ( ! current_user_can( 'resume_plugin', $plugin ) ) {
-				wp_die( __( 'Sorry, you are not allowed to resume execution of this plugin.' ) );
+				wp_die( __( 'Sorry, you are not allowed to resume this plugin.' ) );
 			}
 
 			if ( is_multisite() && ! is_network_admin() && is_network_only_plugin( $plugin ) ) {

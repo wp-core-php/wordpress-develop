@@ -851,7 +851,7 @@ function resume_theme( $theme ) {
 	if ( ! $result ) {
 		return new WP_Error(
 			'could_not_resume_theme',
-			__( 'Could not resume execution of the theme.' )
+			__( 'Could not resume the theme.' )
 		);
 	}
 
