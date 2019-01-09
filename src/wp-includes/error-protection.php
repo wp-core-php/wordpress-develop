@@ -53,7 +53,7 @@ function wp_paused_themes() {
 function wp_record_extension_error( $error ) {
 	global $wp_theme_directories;
 
-	if ( ! is_array( $error ) || ! array_key_exists( 'file', $error ) ) {
+	if ( isset( $error['file'] ) ) {
 		return false;
 	}
 
