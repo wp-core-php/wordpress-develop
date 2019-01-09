@@ -112,11 +112,13 @@ class WP_Shutdown_Handler {
 	 * @since 5.1.0
 	 */
 	protected function display_error_template() {
-		// Load custom PHP error template, if present.
-		$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
-		if ( is_readable( $php_error_pluggable ) ) {
-			require_once $php_error_pluggable;
-			die();
+		if ( defined( 'WP_CONTENT_DIR' ) ) {
+			// Load custom PHP error template, if present.
+			$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
+			if ( is_readable( $php_error_pluggable ) ) {
+				require_once $php_error_pluggable;
+				die();
+			}
 		}
 
 		// Otherwise, fail with a `wp_die()` message.
