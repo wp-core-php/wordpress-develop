@@ -1300,7 +1300,7 @@ function is_protected_endpoint() {
 	}
 
 	// Protect AJAX actions that could help resolve a fatal error should be available.
-	if ( wp_doing_ajax() && is_protected_ajax_action() ) {
+	if ( is_protected_ajax_action() ) {
 		return true;
 	}
 
@@ -1328,6 +1328,14 @@ function is_protected_endpoint() {
  * @return bool True if the current AJAX action should be protected.
  */
 function is_protected_ajax_action() {
+	if ( ! wp_doing_ajax() ) {
+		return false;
+	}
+
+	if ( ! isset( $_REQUEST['action'] ) ) {
+		return false;
+	}
+
 	$actions_to_protect = array(
 		'edit-theme-plugin-file', // Saving changes in the core code editor.
 		'heartbeat',              // Keep the heart beating.
@@ -1338,14 +1346,6 @@ function is_protected_ajax_action() {
 		'update-plugin',          // Update an existing plugin.
 		'update-theme',           // Update an existing theme.
 	);
-
-	if ( ! wp_doing_ajax() ) {
-		return false;
-	}
-
-	if ( ! isset( $_REQUEST['action'] ) ) {
-		return false;
-	}
 
 	if ( ! in_array( $_REQUEST['action'], $actions_to_protect, true ) ) {
 		return false;
