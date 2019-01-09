@@ -182,23 +182,14 @@ class WP_Shutdown_Handler {
 	 * @return array Associative array of $message => $translated_message pairs.
 	 */
 	private function get_i18n() {
-		$keys = array(
-			'The site is experiencing technical difficulties.',
-			'Are you the site owner?',
-			'Log into the admin backend to fix this.',
-		);
-
-		if ( function_exists( '__' ) ) {
-			return array_combine(
-				$keys,
-				array(
-					__( 'The site is experiencing technical difficulties.' ),
-					__( 'Are you the site owner?' ),
-					__( 'Log into the admin backend to fix this.' ),
-				)
-			);
+		if ( ! function_exists( '__' ) ) {
+			function __( $text ) { return $text; }
 		}
 
-		return array_combine( $keys, $keys );
+		return array(
+			__( 'The site is experiencing technical difficulties.' ),
+			__( 'Are you the site owner?' ),
+			__( 'Log into the admin backend to fix this.' ),
+		);
 	}
 }
