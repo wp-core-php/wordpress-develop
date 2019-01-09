@@ -53,6 +53,10 @@ function wp_paused_themes() {
 function wp_record_extension_error( $error ) {
 	global $wp_theme_directories;
 
+	if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
+		return false;
+	}
+
 	$error_file    = wp_normalize_path( $error['file'] );
 	$wp_plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 
@@ -146,7 +150,7 @@ function wp_should_handle_error( $error ) {
  */
 function wp_register_premature_shutdown_handler() {
 	$handler = null;
-	if ( is_readable( WP_CONTENT_DIR . '/shutdown-handler.php' ) ) {
+	if ( defined( 'WP_CONTENT_DIR' ) && is_readable( WP_CONTENT_DIR . '/shutdown-handler.php' ) ) {
 		$handler = include WP_CONTENT_DIR . '/shutdown-handler.php';
 	}
 
