@@ -194,7 +194,7 @@ class WP_Paused_Extensions_Storage {
 	 * @param string $extension Plugin or theme directory name.
 	 * @return array A single clause to add to a meta query.
 	 */
-	public function get_site_meta_query_clause( $extension = '' ) {
+	public function get_site_meta_query_clause( $extension ) {
 		return array(
 			'key'         => $this->meta_prefix . $extension,
 			'compare_key' => '=',
