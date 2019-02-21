@@ -34,6 +34,17 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
+	 * Is the recovery mode cookie set.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return bool
+	 */
+	public function is_cookie_set() {
+		return ! empty( $_COOKIE[ $this->name ] );
+	}
+
+	/**
 	 * Set the recovery mode cookie.
 	 *
 	 * This must be immediately followed by exiting the request.

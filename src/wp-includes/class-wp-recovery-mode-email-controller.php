@@ -42,7 +42,7 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 		add_action( 'handle_fatal_error', array( $this, 'on_fatal_error' ) );
 		add_action( 'clear_auth_cookie', array( $this, 'on_clear_auth_cookie' ) );
 
-		if ( isset( $_COOKIE[ RECOVERY_MODE_COOKIE ] ) ) {
+		if ( $this->cookies->is_cookie_set() ) {
 			$this->handle_cookie();
 
 			return;
