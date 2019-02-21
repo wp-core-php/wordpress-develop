@@ -2,7 +2,7 @@
 
 final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Controller {
 
-	const LOGIN_ACTION_BEGIN = 'begin_recovery_mode';
+	const LOGIN_ACTION_ENTER = 'enter_recovery_mode';
 	const LOGIN_ACTION_ENTERED = 'entered_recovery_mode';
 
 	/** @var WP_Recovery_Mode_Cookie_Service */
@@ -100,7 +100,7 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 * @since 5.2.0
 	 */
 	private function handle_begin_link() {
-		if ( ! isset( $_GET['action'], $_GET['rm_key'] ) || self::LOGIN_ACTION_BEGIN !== $_GET['action'] ) {
+		if ( ! isset( $_GET['action'], $_GET['rm_key'] ) || self::LOGIN_ACTION_ENTER !== $_GET['action'] ) {
 			return;
 		}
 
@@ -216,7 +216,7 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 
 		$url = add_query_arg(
 			array(
-				'action' => self::LOGIN_ACTION_BEGIN,
+				'action' => self::LOGIN_ACTION_ENTER,
 				'rm_key' => $key,
 			),
 			wp_login_url()
