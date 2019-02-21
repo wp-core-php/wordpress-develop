@@ -909,7 +909,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 								$error_message = __( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
 							} else {
 								/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
-								$error_message = __( 'The plugin caused an error in the <strong>admin backend</strong> of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
+								$error_message = __( 'The plugin caused an error in the <strong>admin</strong> of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
 							}
 
 							printf(

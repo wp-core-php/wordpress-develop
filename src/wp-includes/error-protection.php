@@ -199,3 +199,21 @@ function wp_is_fatal_error_handler_enabled() {
 	 */
 	return apply_filters( 'wp_fatal_error_handler_enabled', $enabled );
 }
+
+/**
+ * Access the WordPress Recovery Mode controller.
+ *
+ * @since 5.2.0
+ *
+ * @return WP_Recovery_Mode_Controller
+ */
+function wp_recovery_mode() {
+	static $wp_recovery_mode;
+
+	if ( ! $wp_recovery_mode ) {
+		// Todo: Add filters, allow drop-in, etc...
+		$wp_recovery_mode = new WP_Recovery_Mode_Email_Controller( new WP_Recovery_Mode_Cookie_Service() );
+	}
+
+	return $wp_recovery_mode;
+}

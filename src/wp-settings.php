@@ -265,8 +265,11 @@ require( ABSPATH . WPINC . '/blocks/latest-comments.php' );
 require( ABSPATH . WPINC . '/blocks/latest-posts.php' );
 require( ABSPATH . WPINC . '/blocks/rss.php' );
 require( ABSPATH . WPINC . '/blocks/search.php' );
-require( ABSPATH . WPINC . '/blocks/shortcode.php' );
 require( ABSPATH . WPINC . '/blocks/tag-cloud.php' );
+require( ABSPATH . WPINC . '/blocks/shortcode.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-cookie-service.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-controller.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-email-controller.php' );
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
@@ -347,7 +350,7 @@ wp_start_scraping_edited_file_errors();
 register_theme_directory( get_theme_root() );
 
 // Handle users requesting a recovery mode link and initiating recovery mode.
-handle_recovery_mode_actions();
+wp_recovery_mode()->run();
 
 // Load active plugins.
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {

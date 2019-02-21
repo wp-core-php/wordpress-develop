@@ -38,8 +38,8 @@ class WP_Paused_Extensions_Storage {
 	 * @param string $meta_prefix Prefix for paused extensions stored as site metadata.
 	 */
 	public function __construct( $option_name, $meta_prefix ) {
-		$this->option_name = $option_name;
-		$this->meta_prefix = $meta_prefix;
+		$this->option_name = wp_recovery_mode()->get_recovery_mode_session_id() . '_' . $option_name;
+		$this->meta_prefix = wp_recovery_mode()->get_recovery_mode_session_id() . '_' . $meta_prefix;
 	}
 
 	/**

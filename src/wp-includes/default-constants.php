@@ -303,10 +303,12 @@ function wp_cookie_constants() {
 		define( 'COOKIE_DOMAIN', false );
 	}
 
-	/**
-	 * @since 5.1.0
-	 */
-	define( 'RECOVERY_MODE_COOKIE', 'wordpress_rec_' . COOKIEHASH );
+	if ( ! defined( 'RECOVERY_MODE_COOKIE' ) ) {
+		/**
+		 * @since 5.2.0
+		 */
+		define( 'RECOVERY_MODE_COOKIE', 'wordpress_rec_' . COOKIEHASH );
+	}
 }
 
 /**
