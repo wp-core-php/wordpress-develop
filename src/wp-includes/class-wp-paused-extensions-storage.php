@@ -22,24 +22,12 @@ class WP_Paused_Extensions_Storage {
 	protected $option_name;
 
 	/**
-	 * Prefix for paused extensions stored as site metadata.
-	 *
-	 * @since 5.2.0
-	 * @var string
-	 */
-	protected $meta_prefix;
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 5.2.0
-	 *
-	 * @param string $option_name Option name for storing paused extensions.
-	 * @param string $meta_prefix Prefix for paused extensions stored as site metadata.
 	 */
-	public function __construct( $option_name, $meta_prefix ) {
-		$this->option_name = wp_recovery_mode()->get_recovery_mode_session_id() . '_' . $option_name;
-		$this->meta_prefix = wp_recovery_mode()->get_recovery_mode_session_id() . '_' . $meta_prefix;
+	public function __construct() {
+		$this->option_name = wp_recovery_mode()->get_recovery_mode_session_id() . '_paused_extensions';
 	}
 
 	/**
@@ -50,6 +38,7 @@ class WP_Paused_Extensions_Storage {
 	 *
 	 * @since 5.2.0
 	 *
+	 * @param string $type      Extension type. Either 'plugin' or 'theme'.
 	 * @param string $extension Plugin or theme directory name.
 	 * @param array  $error     {
 	 *     Error that was triggered.
@@ -61,28 +50,30 @@ class WP_Paused_Extensions_Storage {
 	 * }
 	 * @return bool True on success, false on failure.
 	 */
-	public function record( $extension, $error ) {
+	public function record( $type, $extension, $error ) {
 		if ( ! $this->is_api_loaded() ) {
 			return false;
 		}
 
 		if ( is_multisite() && is_site_meta_supported() ) {
+			$meta_key = $this->get_site_meta_key( $type, $extension );
+
 			// Do not update if the error is already stored.
-			if ( get_site_meta( get_current_blog_id(), $this->meta_prefix . $extension, true ) === $error ) {
+			if ( get_site_meta( get_current_blog_id(), $meta_key, true ) === $error ) {
 				return true;
 			}
 
-			return (bool) update_site_meta( get_current_blog_id(), $this->meta_prefix . $extension, $error );
+			return (bool) update_site_meta( get_current_blog_id(), $meta_key, $error );
 		}
 
 		$paused_extensions = $this->get_all();
 
 		// Do not update if the error is already stored.
-		if ( isset( $paused_extensions[ $extension ] ) && $paused_extensions[ $extension ] === $error ) {
+		if ( isset( $paused_extensions[ $type ][ $extension ] ) && $paused_extensions[ $type ][ $extension ] === $error ) {
 			return true;
 		}
 
-		$paused_extensions[ $extension ] = $error;
+		$paused_extensions[ $type ][ $extension ] = $error;
 
 		return update_option( $this->option_name, $paused_extensions );
 	}
@@ -92,36 +83,43 @@ class WP_Paused_Extensions_Storage {
 	 *
 	 * @since 5.2.0
 	 *
+	 * @param string $type Extension type. Either 'plugin' or 'theme'.
 	 * @param string $extension Plugin or theme directory name.
 	 * @return bool True on success, false on failure.
 	 */
-	public function forget( $extension ) {
+	public function forget( $type, $extension ) {
 		if ( ! $this->is_api_loaded() ) {
 			return false;
 		}
 
 		if ( is_multisite() && is_site_meta_supported() ) {
+			$meta_key = $this->get_site_meta_key( $type, $extension );
+
 			// Do not delete if no error is stored.
-			if ( get_site_meta( get_current_blog_id(), $this->meta_prefix . $extension ) === array() ) {
+			if ( get_site_meta( get_current_blog_id(), $meta_key ) === array() ) {
 				return true;
 			}
 
-			return (bool) delete_site_meta( get_current_blog_id(), $this->meta_prefix . $extension );
+			return delete_site_meta( get_current_blog_id(), $meta_key );
 		}
 
 		$paused_extensions = $this->get_all();
 
 		// Do not delete if no error is stored.
-		if ( ! isset( $paused_extensions[ $extension ] ) ) {
+		if ( ! isset( $paused_extensions[ $type ][ $extension ] ) ) {
 			return true;
 		}
 
-		// Clean up the entire option if we're removing the only error.
-		if ( count( $paused_extensions ) === 1 ) {
-			return delete_option( $this->option_name );
+		unset( $paused_extensions[ $type ][ $extension ] );
+
+		if ( empty( $paused_extensions[ $type ] ) ) {
+			unset( $paused_extensions[ $type ] );
 		}
 
-		unset( $paused_extensions[ $extension ] );
+		// Clean up the entire option if we're removing the only error.
+		if ( ! $paused_extensions ) {
+			return delete_option( $this->option_name );
+		}
 
 		return update_option( $this->option_name, $paused_extensions );
 	}
@@ -131,16 +129,17 @@ class WP_Paused_Extensions_Storage {
 	 *
 	 * @since 5.2.0
 	 *
+	 * @param string $type Extension type. Either 'plugin' or 'theme'.
 	 * @param string $extension Plugin or theme directory name.
 	 * @return array|null Error that is stored, or null if the extension is not paused.
 	 */
-	public function get( $extension ) {
+	public function get( $type, $extension ) {
 		if ( ! $this->is_api_loaded() ) {
 			return null;
 		}
 
 		if ( is_multisite() && is_site_meta_supported() ) {
-			$error = get_site_meta( get_current_blog_id(), $this->meta_prefix . $extension, true );
+			$error = get_site_meta( get_current_blog_id(), $this->get_site_meta_key( $type, $extension ), true );
 			if ( ! $error ) {
 				return null;
 			}
@@ -148,7 +147,7 @@ class WP_Paused_Extensions_Storage {
 			return $error;
 		}
 
-		$paused_extensions = $this->get_all();
+		$paused_extensions = $this->get_all( $type );
 
 		if ( ! isset( $paused_extensions[ $extension ] ) ) {
 			return null;
@@ -162,9 +161,12 @@ class WP_Paused_Extensions_Storage {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array Associative array of $extension => $error pairs.
+	 * @param string $type Optionally, limit to extensions of the given type.
+	 *
+	 * @return array Associative array of $type => array( $extension => $error ).
+	 *               If the extension type is provided, just the error entries are returned.
 	 */
-	public function get_all() {
+	public function get_all( $type = '' ) {
 		if ( ! $this->is_api_loaded() ) {
 			return array();
 		}
@@ -174,19 +176,30 @@ class WP_Paused_Extensions_Storage {
 
 			$paused_extensions = array();
 			foreach ( $site_metadata as $meta_key => $meta_values ) {
-				if ( 0 !== strpos( $meta_key, $this->meta_prefix ) ) {
+				if ( 0 !== strpos( $meta_key, $this->option_name . '_' ) ) {
 					continue;
 				}
 
 				$error = maybe_unserialize( array_shift( $meta_values ) );
 
-				$paused_extensions[ substr( $meta_key, strlen( $this->meta_prefix ) ) ] = $error;
-			}
+				$without_prefix = substr( $meta_key, strlen( $this->option_name . '_' ) );
+				$parts          = explode( '_', $without_prefix, 2 );
 
-			return $paused_extensions;
+				if ( ! isset( $parts[1] ) ) {
+					continue;
+				}
+
+				$paused_extensions[ $parts[0] ][ $parts[1] ] = $error;
+			}
+		} else {
+			$paused_extensions = (array) get_option( $this->option_name, array() );
 		}
 
-		return (array) get_option( $this->option_name, array() );
+		if ( $type ) {
+			return isset( $paused_extensions[ $type ] ) ? $paused_extensions[ $type ] : array();
+		}
+
+		return $paused_extensions;
 	}
 
 	/**
@@ -194,12 +207,13 @@ class WP_Paused_Extensions_Storage {
 	 *
 	 * @since 5.2.0
 	 *
+	 * @param string $type      Extension type. Either 'plugin' or 'theme'.
 	 * @param string $extension Plugin or theme directory name.
 	 * @return array A single clause to add to a meta query.
 	 */
-	public function get_site_meta_query_clause( $extension ) {
+	public function get_site_meta_query_clause( $type, $extension ) {
 		return array(
-			'key'         => $this->meta_prefix . $extension,
+			'key'         => $this->get_site_meta_key( $type, $extension ),
 			'compare_key' => '=',
 		);
 	}
@@ -217,5 +231,19 @@ class WP_Paused_Extensions_Storage {
 		}
 
 		return function_exists( 'get_option' );
+	}
+
+	/**
+	 * Get the site meta key for storing extension errors on Multisite.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param string $type
+	 * @param string $extension
+	 *
+	 * @return string
+	 */
+	private function get_site_meta_key( $type, $extension ) {
+		return $this->option_name . '_' . $type . '_' . $extension;
 	}
 }

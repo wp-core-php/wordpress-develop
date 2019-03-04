@@ -717,7 +717,7 @@ function wp_get_active_and_valid_plugins() {
  * @return array Filtered value of $plugins, without any paused plugins.
  */
 function wp_skip_paused_plugins( array $plugins ) {
-	$paused_plugins = wp_paused_plugins()->get_all();
+	$paused_plugins = wp_paused_extensions()->get_all( 'plugin' );
 
 	if ( empty( $paused_plugins ) ) {
 		return $plugins;
@@ -787,7 +787,7 @@ function wp_get_active_and_valid_themes() {
  * @return array Filtered value of $themes, without any paused themes.
  */
 function wp_skip_paused_themes( array $themes ) {
-	$paused_themes = wp_paused_themes()->get_all();
+	$paused_themes = wp_paused_extensions()->get_all( 'theme' );
 
 	if ( empty( $paused_themes ) ) {
 		return $themes;

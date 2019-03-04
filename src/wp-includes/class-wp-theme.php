@@ -371,7 +371,7 @@ final class WP_Theme implements ArrayAccess {
 			$this->parent = new WP_Theme( $this->template, isset( $theme_root_template ) ? $theme_root_template : $this->theme_root, $this );
 		}
 
-		if ( wp_paused_themes()->get( $this->stylesheet ) && ( ! is_wp_error( $this->errors ) || ! isset( $this->errors->errors['theme_paused'] ) ) ) {
+		if ( wp_paused_extensions()->get( 'theme', $this->stylesheet ) && ( ! is_wp_error( $this->errors ) || ! isset( $this->errors->errors['theme_paused'] ) ) ) {
 			$this->errors = new WP_Error( 'theme_paused', __( 'This theme failed to load properly and was paused within the admin backend.' ) );
 		}
 

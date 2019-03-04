@@ -7,37 +7,18 @@
  */
 
 /**
- * Gets the instance for storing paused plugins.
+ * Get the instance for storing paused extensions.
  *
- * @since 5.2.0
- *
- * @return WP_Paused_Extensions_Storage Paused plugins storage.
+ * @return WP_Paused_Extensions_Storage
  */
-function wp_paused_plugins() {
-	static $wp_paused_plugins_storage = null;
+function wp_paused_extensions() {
+	static $wp_paused_extensions_storage = null;
 
-	if ( null === $wp_paused_plugins_storage ) {
-		$wp_paused_plugins_storage = new WP_Paused_Extensions_Storage( 'paused_plugins', 'paused_plugin_' );
+	if ( null === $wp_paused_extensions_storage ) {
+		$wp_paused_extensions_storage = new WP_Paused_Extensions_Storage();
 	}
 
-	return $wp_paused_plugins_storage;
-}
-
-/**
- * Gets the instance for storing paused themes.
- *
- * @since 5.2.0
- *
- * @return WP_Paused_Extensions_Storage Paused themes storage.
- */
-function wp_paused_themes() {
-	static $wp_paused_themes_storage = null;
-
-	if ( null === $wp_paused_themes_storage ) {
-		$wp_paused_themes_storage = new WP_Paused_Extensions_Storage( 'paused_themes', 'paused_theme_' );
-	}
-
-	return $wp_paused_themes_storage;
+	return $wp_paused_extensions_storage;
 }
 
 /**
@@ -57,9 +38,7 @@ function wp_record_extension_error( $error ) {
 		return false;
 	}
 
-	$storage = 'plugin' === $extension['type'] ? wp_paused_plugins() : wp_paused_themes();
-
-	return $storage->record( $extension['slug'], $error );
+	return wp_paused_extensions()->record( $extension['type'], $extension['slug'], $error );
 }
 
 /**
@@ -127,28 +106,22 @@ function wp_get_extension_for_error( $error ) {
  * @return bool Whether the extension error was successfully forgotten.
  */
 function wp_forget_extension_error( $type, $extension, $network_wide = false ) {
-	switch ( $type ) {
-		case 'plugins':
-			$callback = 'wp_paused_plugins';
-			list( $extension ) = explode( '/', $extension );
-			break;
-		case 'themes':
-			$callback = 'wp_paused_themes';
-			list( $extension ) = explode( '/', $extension );
-			break;
-	}
 
-	if ( empty( $callback ) || empty( $extension ) ) {
+	list( $extension ) = explode( '/', $extension );
+
+	if ( empty( $extension ) ) {
 		return false;
 	}
 
+	$storage = wp_paused_extensions();
+
 	// Handle manually since the regular APIs do not expose this functionality.
 	if ( $network_wide && is_site_meta_supported() ) {
-		$site_meta_query_clause = call_user_func( $callback )->get_site_meta_query_clause( $extension );
+		$site_meta_query_clause = $storage->get_site_meta_query_clause( $type, $extension );
 		return delete_metadata( 'blog', 0, $site_meta_query_clause['key'], '', true );
 	}
 
-	return call_user_func( $callback )->forget( $extension );
+	return $storage->forget( $type, $extension );
 }
 
 /**

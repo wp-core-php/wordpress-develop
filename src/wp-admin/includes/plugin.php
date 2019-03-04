@@ -2211,7 +2211,7 @@ function count_paused_plugin_sites_for_network( $plugin ) {
 		'number'     => 0,
 		'network_id' => get_current_network_id(),
 		'meta_query' => array(
-			wp_paused_plugins()->get_site_meta_query_clause( $plugin ),
+			wp_paused_extensions()->get_site_meta_query_clause( 'plugin', $plugin ),
 		),
 	);
 
@@ -2257,7 +2257,7 @@ function resume_plugin( $plugin, $redirect = '', $network_wide = false ) {
 		ob_clean();
 	}
 
-	$result = wp_forget_extension_error( 'plugins', $plugin, $network_wide );
+	$result = wp_forget_extension_error( 'plugin', $plugin, $network_wide );
 
 	if ( ! $result ) {
 		return new WP_Error(

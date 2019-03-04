@@ -834,7 +834,7 @@ function count_paused_theme_sites_for_network( $theme ) {
 		'number'     => 0,
 		'network_id' => get_current_network_id(),
 		'meta_query' => array(
-			wp_paused_themes()->get_site_meta_query_clause( $theme ),
+			wp_paused_extensions()->get_site_meta_query_clause( 'theme', $theme ),
 		),
 	);
 
@@ -851,7 +851,7 @@ function count_paused_theme_sites_for_network( $theme ) {
  *                       `WP_Error` on failure.
  */
 function resume_theme( $theme ) {
-	$result = wp_forget_extension_error( 'themes', $theme );
+	$result = wp_forget_extension_error( 'theme', $theme );
 
 	if ( ! $result ) {
 		return new WP_Error(
