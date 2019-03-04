@@ -2156,6 +2156,42 @@ function wp_get_plugin_error( $plugin ) {
 }
 
 /**
+ * Get a human readable description of the plugin error.
+ *
+ * @since 5.2.0
+ *
+ * @param array $error Error from {@see wp_get_plugin_error()}
+ *
+ * @return string Formatted error description.
+ */
+function wp_get_plugin_error_description( $error ) {
+	$constants   = get_defined_constants( true );
+	$constants   = isset( $constants['Core'] ) ? $constants['Core'] : $constants['internal'];
+	$core_errors = array();
+
+	foreach ( $constants as $constant => $value ) {
+		if ( 0 === strpos( $constant, 'E_' ) ) {
+			$core_errors[ $value ] = $constant;
+		}
+	}
+
+	if ( isset( $core_errors[ $error['type'] ] ) ) {
+		$error['type'] = $core_errors[ $error['type'] ];
+	}
+
+	/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
+	$error_message = __( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
+
+	return sprintf(
+		$error_message,
+		"<code>{$error['type']}</code>",
+		"<code>{$error['line']}</code>",
+		"<code>{$error['file']}</code>",
+		"<code>{$error['message']}</code>"
+	);
+}
+
+/**
  * Gets the number of sites on which a specific plugin is paused.
  *
  * @since 5.2.0

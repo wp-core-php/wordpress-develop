@@ -57,9 +57,13 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 * When a fatal error occurs, send the recovery mode email.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @param array $error Error details from {@see error_get_last()}
 	 */
-	public function on_fatal_error() {
-		$this->maybe_send_recovery_mode_email();
+	public function on_fatal_error( $error ) {
+		if ( is_protected_endpoint() ) {
+			$this->maybe_send_recovery_mode_email( $error );
+		}
 	}
 
 	/**
@@ -194,7 +198,7 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 			return new WP_Error( 'hash_mismatch', __( 'Invalid recovery key.' ) );
 		}
 
-		$valid_for = HOUR_IN_SECONDS;
+		$valid_for = $this->get_link_valid_for_interval();
 
 		if ( time() > $record['created_at'] + $valid_for ) {
 			return new WP_Error( 'key_expired', __( 'Recovery key expired.' ) );
@@ -234,27 +238,65 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	}
 
 	/**
-	 * Send the recovery mode email if the rate limit has not been sent.
+	 * Get the interval the recovery mode email key is valid for.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return true|WP_Error True if email sent, WP_Error otherwise.
+	 * @return int Interval in seconds.
 	 */
-	private function maybe_send_recovery_mode_email() {
+	private function get_link_valid_for_interval() {
 
+		$rate_limit = $valid_for = $this->get_email_rate_limit();
+
+		/**
+		 * Filter the amount of time the recovery mode email link is valid for.
+		 *
+		 * The interval time must be at least as long as the email rate limit.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param int $valid_for The number of seconds the link is valid for.
+		 */
+		$valid_for = apply_filters( 'recovery_mode_email_link_valid_for_interval', $valid_for );
+
+		return max( $valid_for, $rate_limit );
+	}
+
+	/**
+	 * The rate limit between sending new recovery mode email links.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return int Rate limit in seconds.
+	 */
+	private function get_email_rate_limit() {
 		/**
 		 * Filter the rate limit between sending new recovery mode email links.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param int $rate_limit Time to wait in seconds.
+		 * @param int $rate_limit Time to wait in seconds. Defaults to 4 hours.
 		 */
-		$rate_limit = apply_filters( 'recovery_mode_email_rate_limit', HOUR_IN_SECONDS );
+		return apply_filters( 'recovery_mode_email_rate_limit', 4 * HOUR_IN_SECONDS );
+	}
+
+	/**
+	 * Send the recovery mode email if the rate limit has not been sent.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array $error Error details from {@see error_get_last()}
+	 *
+	 * @return true|WP_Error True if email sent, WP_Error otherwise.
+	 */
+	private function maybe_send_recovery_mode_email( $error ) {
+
+		$rate_limit = $this->get_email_rate_limit();
 
 		$last_sent = get_site_option( 'recovery_mode_email_last_sent' );
 
 		if ( ! $last_sent || time() > $last_sent + $rate_limit ) {
-			$sent = $this->send_recovery_mode_email();
+			$sent = $this->send_recovery_mode_email( $error );
 			update_site_option( 'recovery_mode_email_last_sent', time() );
 
 			if ( $sent ) {
@@ -264,14 +306,14 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 			return new WP_Error( 'email_failed', __( 'The email could not be sent. Possible reason: your host may have disabled the mail() function.' ) );
 		}
 
-		$error = sprintf(
+		$err_message = sprintf(
 		/* translators: 1. Last sent as a human time diff 2. Wait time as a human time diff. */
 			__( 'A recovery link was already sent %1$s ago. Please wait another %2$s before requesting a new email.' ),
 			human_time_diff( $last_sent ),
 			human_time_diff( $last_sent + $rate_limit )
 		);
 
-		return new WP_Error( 'email_sent_already', $error );
+		return new WP_Error( 'email_sent_already', $err_message );
 	}
 
 	/**
@@ -279,9 +321,11 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 *
 	 * @since 5.2.0
 	 *
+	 * @param array $error Error details from {@see error_get_last()}
+	 *
 	 * @return bool Whether the email was sent successfully.
 	 */
-	private function send_recovery_mode_email() {
+	private function send_recovery_mode_email( $error ) {
 
 		$key      = $this->generate_and_store_recovery_mode_key();
 		$url      = $this->get_recovery_mode_begin_url( $key );
@@ -294,20 +338,53 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 			$switched_locale = switch_to_locale( get_locale() );
 		}
 
+		$extension = wp_get_extension_for_error( $error );
+
+		if ( $extension ) {
+			$cause   = $this->get_cause( $extension );
+			$details = $this->get_error_details( $error );
+
+			if ( $details ) {
+				$header  = __( 'Error Details' );
+				$details = "\n\n" . $header . "\n" . str_pad( '', strlen( $header ), '=' ) . "\n" . $details;
+			}
+		} else {
+			$cause = $details = '';
+		}
+
 		$message = __(
 			'Howdy,
 
-Your site recently experienced a fatal error. Click the link below to initiate recovery mode to fix the problem.
+Your site recently crashed on ###LOCATION### and may not be working as expected.
+###CAUSE###
+Click the link below to initiate recovery mode and fix the problem.
 
-This link expires in one hour.
+This link expires in ###EXPIRES###.
 
-###LINK###'
+###LINK### ###DETAILS###
+'
 		);
-		$message = str_replace( '###LINK###', $url, $message );
+		$message = str_replace(
+			array(
+				'###LINK###',
+				'###LOCATION###',
+				'###EXPIRES###',
+				'###CAUSE###',
+				'###DETAILS###',
+			),
+			array(
+				$url,
+				'TBD',
+				human_time_diff( time() + $this->get_link_valid_for_interval() ),
+				$cause ? "\n{$cause}\n" : "\n",
+				$details,
+			),
+			$message
+		);
 
 		$email = array(
 			'to'      => get_option( 'admin_email' ),
-			'subject' => __( '[%s] Recovery Mode' ),
+			'subject' => __( '[%s] Your Site Experienced an Issue' ),
 			'message' => $message,
 			'headers' => '',
 		);
@@ -334,5 +411,96 @@ This link expires in one hour.
 		}
 
 		return $sent;
+	}
+
+	/**
+	 * Get the email address to send the recovery mode link to.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return string
+	 */
+	private function get_recovery_mode_email_address() {
+		if ( defined( 'RECOVERY_MODE_EMAIL' ) && is_email( RECOVERY_MODE_EMAIL ) ) {
+			return RECOVERY_MODE_EMAIL;
+		}
+
+		return get_option( 'admin_email' );
+	}
+
+	/**
+	 * Get a human readable description of the error.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array $error Error details from {@see error_get_last()}
+	 *
+	 * @return string
+	 */
+	private function get_error_details( $error ) {
+		$constants   = get_defined_constants( true );
+		$constants   = isset( $constants['Core'] ) ? $constants['Core'] : $constants['internal'];
+		$core_errors = array();
+
+		foreach ( $constants as $constant => $value ) {
+			if ( 0 === strpos( $constant, 'E_' ) ) {
+				$core_errors[ $value ] = $constant;
+			}
+		}
+
+		if ( isset( $core_errors[ $error['type'] ] ) ) {
+			$error['type'] = $core_errors[ $error['type'] ];
+		}
+
+		/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
+		$error_message = __( "An error of type %1\$s in line %2\$s of the file %3\$s. \nError message: %4\$s" );
+
+		return sprintf(
+			$error_message,
+			$error['type'],
+			$error['line'],
+			$error['file'],
+			$error['message']
+		);
+	}
+
+	/**
+	 * Get the description indicating the possible cause for the error.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array $extension The extension that caused the error.
+	 *
+	 * @return string
+	 */
+	private function get_cause( $extension ) {
+
+		if ( 'plugin' === $extension['type'] ) {
+			if ( ! function_exists( 'get_plugins' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+
+			$names = array();
+
+			foreach ( get_plugins() as $file => $plugin ) {
+				if ( 0 === strpos( $file, "{$extension['slug']}/" ) ) {
+					$names[] = $plugin['Name'];
+				}
+			}
+
+			if ( ! $names ) {
+				$names[] = $extension['slug'];
+			}
+
+			// Multiple plugins can technically be in the same directory.
+			$cause = wp_sprintf( _n( 'This may be caused by the %l plugin.', 'This may be caused by the %l plugins.', count( $names ) ), $names );
+		} else {
+			$theme = wp_get_theme( $extension['slug'] );
+			$name  = $theme->exists() ? $theme->display( 'Name' ) : $extension['slug'];
+
+			$cause = sprintf( __( 'This may be caused by the %s theme.' ), $name );
+		}
+
+		return $cause;
 	}
 }

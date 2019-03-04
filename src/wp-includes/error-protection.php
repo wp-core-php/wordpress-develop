@@ -3,7 +3,7 @@
  * Error Protection API: Functions
  *
  * @package WordPress
- * @since 5.2.0
+ * @since   5.2.0
  */
 
 /**
@@ -45,12 +45,37 @@ function wp_paused_themes() {
  *
  * @since 5.2.0
  *
- * @global array $wp_theme_directories
- *
  * @param array $error Error that was triggered.
+ *
  * @return bool Whether the error was correctly recorded.
  */
 function wp_record_extension_error( $error ) {
+
+	$extension = wp_get_extension_for_error( $error );
+
+	if ( ! $extension ) {
+		return false;
+	}
+
+	$storage = 'plugin' === $extension['type'] ? wp_paused_plugins() : wp_paused_themes();
+
+	return $storage->record( $extension['slug'], $error );
+}
+
+/**
+ * Get the extension that the error occurred in.
+ *
+ * @since 5.2.0
+ *
+ * @global array $wp_theme_directories
+ *
+ * @param array  $error Error that was triggered.
+ *
+ * @return array|false array( 'slug' => (string), 'type' => 'plugin' | 'theme' )
+ *                     Slug is the plugin or theme directory as opposed to the full file.
+ *                     Or false on error.
+ */
+function wp_get_extension_for_error( $error ) {
 	global $wp_theme_directories;
 
 	if ( ! isset( $error['file'] ) ) {
@@ -65,32 +90,28 @@ function wp_record_extension_error( $error ) {
 	$wp_plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 
 	if ( 0 === strpos( $error_file, $wp_plugin_dir ) ) {
-		$callback = 'wp_paused_plugins';
-		$path     = str_replace( $wp_plugin_dir . '/', '', $error_file );
-	} else {
-		if ( empty( $wp_theme_directories ) ) {
-			return false;
-		}
+		$path  = str_replace( $wp_plugin_dir . '/', '', $error_file );
+		$parts = explode( '/', $path );
 
-		foreach ( $wp_theme_directories as $theme_directory ) {
-			$theme_directory = wp_normalize_path( $theme_directory );
-			if ( 0 === strpos( $error_file, $theme_directory ) ) {
-				$callback = 'wp_paused_themes';
-				$path     = str_replace( $theme_directory . '/', '', $error_file );
-			}
-		}
+		return array( 'type' => 'plugin', 'slug' => $parts[0] );
 	}
 
-	if ( empty( $callback ) || empty( $path ) ) {
+	if ( empty( $wp_theme_directories ) ) {
 		return false;
 	}
 
-	$parts     = explode( '/', $path );
-	$extension = array_shift( $parts );
+	foreach ( $wp_theme_directories as $theme_directory ) {
+		$theme_directory = wp_normalize_path( $theme_directory );
 
-	$error['wp_is_protected'] = is_protected_endpoint();
+		if ( 0 === strpos( $error_file, $theme_directory ) ) {
+			$path  = str_replace( $theme_directory . '/', '', $error_file );
+			$parts = explode( '/', $path );
 
-	return call_user_func( $callback )->record( $extension, $error );
+			return array( 'type' => 'theme', 'slug' => $parts[0] );
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -102,16 +123,17 @@ function wp_record_extension_error( $error ) {
  * @param string $extension    Relative path of the extension.
  * @param bool   $network_wide Optional. Whether to resume the plugin for the entire
  *                             network. Default false.
+ *
  * @return bool Whether the extension error was successfully forgotten.
  */
 function wp_forget_extension_error( $type, $extension, $network_wide = false ) {
 	switch ( $type ) {
 		case 'plugins':
-			$callback          = 'wp_paused_plugins';
+			$callback = 'wp_paused_plugins';
 			list( $extension ) = explode( '/', $extension );
 			break;
 		case 'themes':
-			$callback          = 'wp_paused_themes';
+			$callback = 'wp_paused_themes';
 			list( $extension ) = explode( '/', $extension );
 			break;
 	}
