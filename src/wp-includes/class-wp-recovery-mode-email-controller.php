@@ -383,7 +383,7 @@ This link expires in ###EXPIRES###.
 		);
 
 		$email = array(
-			'to'      => get_option( 'admin_email' ),
+			'to'      => $this->get_recovery_mode_email_address(),
 			'subject' => __( '[%s] Your Site Experienced an Issue' ),
 			'message' => $message,
 			'headers' => '',
