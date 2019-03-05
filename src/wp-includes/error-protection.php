@@ -207,7 +207,10 @@ function wp_recovery_mode() {
 
 	if ( ! $wp_recovery_mode ) {
 		// Todo: Add filters, allow drop-in, etc...
-		$wp_recovery_mode = new WP_Recovery_Mode_Email_Controller( new WP_Recovery_Mode_Cookie_Service() );
+		$wp_recovery_mode = new WP_Recovery_Mode_Email_Controller(
+			new WP_Recovery_Mode_Cookie_Service(),
+			new WP_Recovery_Mode_Key_Service()
+		);
 	}
 
 	return $wp_recovery_mode;

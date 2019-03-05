@@ -268,6 +268,7 @@ require( ABSPATH . WPINC . '/blocks/search.php' );
 require( ABSPATH . WPINC . '/blocks/tag-cloud.php' );
 require( ABSPATH . WPINC . '/blocks/shortcode.php' );
 require( ABSPATH . WPINC . '/class-wp-recovery-mode-cookie-service.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-key-service.php' );
 require( ABSPATH . WPINC . '/class-wp-recovery-mode-controller.php' );
 require( ABSPATH . WPINC . '/class-wp-recovery-mode-email-controller.php' );
 

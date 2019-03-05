@@ -8,6 +8,9 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	/** @var WP_Recovery_Mode_Cookie_Service */
 	private $cookies;
 
+	/** @var WP_Recovery_Mode_Key_Service */
+	private $keys;
+
 	/** @var bool */
 	private $is_active;
 
@@ -18,8 +21,12 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 * WP_Recovery_Mode_Email_Processor constructor.
 	 *
 	 * @param WP_Recovery_Mode_Cookie_Service $cookies
+	 * @param WP_Recovery_Mode_Key_Service    $keys
 	 */
-	public function __construct( WP_Recovery_Mode_Cookie_Service $cookies ) { $this->cookies = $cookies; }
+	public function __construct( WP_Recovery_Mode_Cookie_Service $cookies, WP_Recovery_Mode_Key_Service $keys ) {
+		$this->cookies = $cookies;
+		$this->keys    = $keys;
+	}
 
 	/**
 	 * @inheritdoc
@@ -108,7 +115,7 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 			return;
 		}
 
-		$validated = $this->validate_recovery_mode_key( $_GET['rm_key'] );
+		$validated = $this->keys->validate_recovery_mode_key( $_GET['rm_key'], $this->get_link_valid_for_interval() );
 
 		if ( is_wp_error( $validated ) ) {
 			wp_die( $validated, '' );
@@ -124,87 +131,6 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 		$url = add_query_arg( 'action', self::LOGIN_ACTION_ENTERED, wp_login_url() );
 		wp_redirect( $url );
 		die;
-	}
-
-	/**
-	 * Create a recovery mode key.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @global PasswordHash $wp_hasher
-	 *
-	 * @return string Recovery mode key.
-	 */
-	private function generate_and_store_recovery_mode_key() {
-
-		global $wp_hasher;
-
-		if ( ! function_exists( 'wp_generate_password' ) ) {
-			require_once ABSPATH . WPINC . '/pluggable.php';
-		}
-
-		$key = wp_generate_password( 20, false );
-
-		/**
-		 * Fires when a recovery mode key is generated for a user.
-		 *
-		 * @since 5.2.0
-		 *
-		 * @param string $key The recovery mode key.
-		 */
-		do_action( 'generate_recovery_mode_key', $key );
-
-		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
-			$wp_hasher = new PasswordHash( 8, true );
-		}
-
-		$hashed = $wp_hasher->HashPassword( $key );
-
-		update_site_option( 'recovery_key', array(
-			'hashed_key' => $hashed,
-			'created_at' => time(),
-		) );
-
-		return $key;
-	}
-
-	/**
-	 * Verify if the recovery mode key is correct.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param string $key The unhashed key.
-	 *
-	 * @return true|WP_Error
-	 */
-	private function validate_recovery_mode_key( $key ) {
-
-		$record = get_site_option( 'recovery_key' );
-
-		if ( ! $record ) {
-			return new WP_Error( 'no_recovery_key_set', __( 'Recovery Mode not initialized.' ) );
-		}
-
-		if ( ! is_array( $record ) || ! isset( $record['hashed_key'], $record['created_at'] ) ) {
-			return new WP_Error( 'invalid_recovery_key_format', __( 'Invalid recovery key format.' ) );
-		}
-
-		if ( ! function_exists( 'wp_check_password' ) ) {
-			require_once ABSPATH . WPINC . '/pluggable.php';
-		}
-
-		if ( ! wp_check_password( $key, $record['hashed_key'] ) ) {
-			return new WP_Error( 'hash_mismatch', __( 'Invalid recovery key.' ) );
-		}
-
-		$valid_for = $this->get_link_valid_for_interval();
-
-		if ( time() > $record['created_at'] + $valid_for ) {
-			return new WP_Error( 'key_expired', __( 'Recovery key expired.' ) );
-		}
-
-		return true;
 	}
 
 	/**
@@ -327,7 +253,7 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 */
 	private function send_recovery_mode_email( $error ) {
 
-		$key      = $this->generate_and_store_recovery_mode_key();
+		$key      = $this->keys->generate_and_store_recovery_mode_key();
 		$url      = $this->get_recovery_mode_begin_url( $key );
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
