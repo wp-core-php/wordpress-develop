@@ -468,14 +468,15 @@ function get_dropins() {
  */
 function _get_dropins() {
 	$dropins = array(
-		'advanced-cache.php'      => array( __( 'Advanced caching plugin.' ), 'WP_CACHE' ), // WP_CACHE
-		'db.php'                  => array( __( 'Custom database class.' ), true ), // auto on load
-		'db-error.php'            => array( __( 'Custom database error message.' ), true ), // auto on error
-		'install.php'             => array( __( 'Custom installation script.' ), true ), // auto on installation
-		'maintenance.php'         => array( __( 'Custom maintenance message.' ), true ), // auto on maintenance
-		'object-cache.php'        => array( __( 'External object cache.' ), true ), // auto on load
-		'php-error.php'           => array( __( 'Custom PHP error message.' ), true ), // auto on error
-		'fatal-error-handler.php' => array( __( 'Custom PHP fatal error handler.' ), true ), // auto on error
+		'advanced-cache.php'           => array( __( 'Advanced caching plugin.' ), 'WP_CACHE' ), // WP_CACHE
+		'db.php'                       => array( __( 'Custom database class.' ), true ), // auto on load
+		'db-error.php'                 => array( __( 'Custom database error message.' ), true ), // auto on error
+		'install.php'                  => array( __( 'Custom installation script.' ), true ), // auto on installation
+		'maintenance.php'              => array( __( 'Custom maintenance message.' ), true ), // auto on maintenance
+		'object-cache.php'             => array( __( 'External object cache.' ), true ), // auto on load
+		'php-error.php'                => array( __( 'Custom PHP error message.' ), true ), // auto on error
+		'fatal-error-handler.php'      => array( __( 'Custom PHP fatal error handler.' ), true ), // auto on error
+		'recovery-mode-controller.php' => array( __( 'Custom recovery mode controller.' ), true ), // auto on error
 	);
 
 	if ( is_multisite() ) {

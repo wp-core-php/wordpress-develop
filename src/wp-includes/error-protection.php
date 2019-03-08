@@ -206,11 +206,33 @@ function wp_recovery_mode() {
 	static $wp_recovery_mode;
 
 	if ( ! $wp_recovery_mode ) {
-		// Todo: Add filters, allow drop-in, etc...
-		$wp_recovery_mode = new WP_Recovery_Mode_Email_Controller(
+		$default = new WP_Recovery_Mode_Email_Controller(
 			new WP_Recovery_Mode_Cookie_Service(),
 			new WP_Recovery_Mode_Key_Service()
 		);
+
+		if ( defined( 'WP_CONTENT_DIR' ) && is_readable( WP_CONTENT_DIR . '/recovery-mode-controller.php' ) ) {
+			$wp_recovery_mode = include WP_CONTENT_DIR . '/recovery-mode-controller.php';
+		}
+
+		if ( ! $wp_recovery_mode instanceof WP_Recovery_Mode_Controller ) {
+			$wp_recovery_mode = $default;
+		}
+
+		/**
+		 * Filter the recovery mode controller.
+		 *
+		 * This filter can only be used by mu-plugins.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param WP_Recovery_Mode_Controller $wp_recovery_mode
+		 */
+		$wp_recovery_mode = apply_filters( 'wp_recovery_mode_controller', $wp_recovery_mode );
+
+		if ( ! $wp_recovery_mode instanceof WP_Recovery_Mode_Controller ) {
+			$wp_recovery_mode = $default;
+		}
 	}
 
 	return $wp_recovery_mode;
