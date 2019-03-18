@@ -459,6 +459,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$expected['activate_plugin'],
 			$expected['deactivate_plugin'],
 			$expected['resume_plugin'],
+			$expected['resume_theme'],
 			$expected['remove_user'],
 			$expected['promote_user'],
 			$expected['edit_user'],
