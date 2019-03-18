@@ -71,11 +71,35 @@ class WP_Fatal_Error_Handler {
 		}
 
 		// Bail if this error should not be handled.
-		if ( ! wp_should_handle_error( $error ) ) {
+		if ( ! $this->should_handle_error( $error ) ) {
 			return null;
 		}
 
 		return $error;
+	}
+
+	/**
+	 * Determines whether we are dealing with an error that WordPress should handle
+	 * in order to protect the admin backend against WSODs.
+	 *
+	 * @param array $error Error information retrieved from error_get_last().
+	 *
+	 * @return bool Whether WordPress should handle this error.
+	 */
+	protected function should_handle_error( $error ) {
+		if ( ! isset( $error['type'] ) ) {
+			return false;
+		}
+
+		$error_types_to_handle = array(
+			E_ERROR,
+			E_PARSE,
+			E_USER_ERROR,
+			E_COMPILE_ERROR,
+			E_RECOVERABLE_ERROR,
+		);
+
+		return in_array( $error['type'], $error_types_to_handle, true );
 	}
 
 	/**
@@ -88,7 +112,20 @@ class WP_Fatal_Error_Handler {
 	 * @return bool True if the error was stored successfully, false otherwise.
 	 */
 	protected function store_error( $error ) {
-		return wp_record_extension_error( $error );
+		$extension = wp_get_extension_for_error( $error );
+
+		if ( ! $extension ) {
+			return false;
+		}
+
+		switch ( $extension['type'] ) {
+			case 'plugin':
+				return wp_paused_plugins()->set( $extension['slug'], $error );
+			case 'theme':
+				return wp_paused_themes()->set( $extension['slug'], $error );
+			default:
+				return false;
+		}
 	}
 
 	/**

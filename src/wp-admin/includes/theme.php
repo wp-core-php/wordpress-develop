@@ -826,7 +826,8 @@ function wp_get_theme_error( $theme ) {
  *                       `WP_Error` on failure.
  */
 function resume_theme( $theme ) {
-	$result = wp_forget_extension_error( 'theme', $theme );
+	list( $extension ) = explode( '/', $theme );
+	$result = wp_paused_themes()->delete( $extension );
 
 	if ( ! $result ) {
 		return new WP_Error(

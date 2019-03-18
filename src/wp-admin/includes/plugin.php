@@ -2229,7 +2229,8 @@ function resume_plugin( $plugin, $redirect = '' ) {
 		ob_clean();
 	}
 
-	$result = wp_forget_extension_error( 'plugin', $plugin );
+	list( $extension ) = explode( '/', $plugin );
+	$result = wp_paused_plugins()->delete( $extension );
 
 	if ( ! $result ) {
 		return new WP_Error(

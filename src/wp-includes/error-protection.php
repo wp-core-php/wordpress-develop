@@ -7,38 +7,33 @@
  */
 
 /**
+ * Get the instance for storing paused plugins.
+ *
+ * @return WP_Paused_Extensions_Storage
+ */
+function wp_paused_plugins() {
+	static $storage = null;
+
+	if ( null === $storage ) {
+		$storage = new WP_Paused_Extensions_Storage( 'plugin' );
+	}
+
+	return $storage;
+}
+
+/**
  * Get the instance for storing paused extensions.
  *
  * @return WP_Paused_Extensions_Storage
  */
-function wp_paused_extensions() {
-	static $wp_paused_extensions_storage = null;
+function wp_paused_themes() {
+	static $storage = null;
 
-	if ( null === $wp_paused_extensions_storage ) {
-		$wp_paused_extensions_storage = new WP_Paused_Extensions_Storage();
+	if ( null === $storage ) {
+		$storage = new WP_Paused_Extensions_Storage( 'theme' );
 	}
 
-	return $wp_paused_extensions_storage;
-}
-
-/**
- * Records the extension error as a database option.
- *
- * @since 5.2.0
- *
- * @param array $error Error that was triggered.
- *
- * @return bool Whether the error was correctly recorded.
- */
-function wp_record_extension_error( $error ) {
-
-	$extension = wp_get_extension_for_error( $error );
-
-	if ( ! $extension ) {
-		return false;
-	}
-
-	return wp_paused_extensions()->record( $extension['type'], $extension['slug'], $error );
+	return $storage;
 }
 
 /**
@@ -91,51 +86,6 @@ function wp_get_extension_for_error( $error ) {
 	}
 
 	return false;
-}
-
-/**
- * Forgets a previously recorded extension error again.
- *
- * @since 5.2.0
- *
- * @param string $type         Type of the extension.
- * @param string $extension    Relative path of the extension.
- *
- * @return bool Whether the extension error was successfully forgotten.
- */
-function wp_forget_extension_error( $type, $extension ) {
-
-	list( $extension ) = explode( '/', $extension );
-
-	if ( empty( $extension ) ) {
-		return false;
-	}
-
-	return wp_paused_extensions()->forget( $type, $extension );
-}
-
-/**
- * Determines whether we are dealing with an error that WordPress should handle
- * in order to protect the admin backend against WSODs.
- *
- * @param array $error Error information retrieved from error_get_last().
- *
- * @return bool Whether WordPress should handle this error.
- */
-function wp_should_handle_error( $error ) {
-	if ( ! isset( $error['type'] ) ) {
-		return false;
-	}
-
-	$error_types_to_handle = array(
-		E_ERROR,
-		E_PARSE,
-		E_USER_ERROR,
-		E_COMPILE_ERROR,
-		E_RECOVERABLE_ERROR,
-	);
-
-	return in_array( $error['type'], $error_types_to_handle, true );
 }
 
 /**
