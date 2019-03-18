@@ -467,6 +467,9 @@ function map_meta_cap( $cap, $user_id ) {
 		case 'resume_plugin':
 			$caps[] = 'resume_plugins';
 			break;
+		case 'resume_theme':
+			$caps[] = 'resume_themes';
+			break;
 		case 'delete_user':
 		case 'delete_users':
 			// If multisite only super admins can delete users.

@@ -37,7 +37,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		check_admin_referer( 'resume-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
-		if ( ! current_user_can( 'resume_themes' ) ) {
+		if ( ! current_user_can( 'resume_theme', $_GET['stylesheet'] ) ) {
 			wp_die(
 				'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 				'<p>' . __( 'Sorry, you are not allowed to resume this theme.' ) . '</p>',

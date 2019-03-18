@@ -848,7 +848,7 @@ function paused_themes_notice() {
 		return;
 	}
 
-	if ( ! current_user_can( 'switch_themes' ) ) {
+	if ( ! current_user_can( 'resume_themes' ) ) {
 		return;
 	}
 
