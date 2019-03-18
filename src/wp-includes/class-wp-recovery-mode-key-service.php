@@ -1,5 +1,16 @@
 <?php
+/**
+ * Error Protection API: WP_Recovery_Mode_Key_service class
+ *
+ * @package WordPress
+ * @since   5.2.0
+ */
 
+/**
+ * Core class used to generate and validate keys used to enter Recovery Mode.
+ *
+ * @since 5.2.0
+ */
 final class WP_Recovery_Mode_Key_Service {
 
 	/**
@@ -14,10 +25,6 @@ final class WP_Recovery_Mode_Key_Service {
 	public function generate_and_store_recovery_mode_key() {
 
 		global $wp_hasher;
-
-		if ( ! function_exists( 'wp_generate_password' ) ) {
-			require_once ABSPATH . WPINC . '/pluggable.php';
-		}
 
 		$key = wp_generate_password( 20, false );
 
@@ -65,10 +72,6 @@ final class WP_Recovery_Mode_Key_Service {
 
 		if ( ! is_array( $record ) || ! isset( $record['hashed_key'], $record['created_at'] ) ) {
 			return new WP_Error( 'invalid_recovery_key_format', __( 'Invalid recovery key format.' ) );
-		}
-
-		if ( ! function_exists( 'wp_check_password' ) ) {
-			require_once ABSPATH . WPINC . '/pluggable.php';
 		}
 
 		if ( ! wp_check_password( $key, $record['hashed_key'] ) ) {

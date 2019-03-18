@@ -37,55 +37,39 @@ function wp_paused_themes() {
 }
 
 /**
- * Get the extension that the error occurred in.
+ * Get a human readable description of an extension's error.
  *
  * @since 5.2.0
  *
- * @global array $wp_theme_directories
+ * @param array $error Error details {@see error_get_last()}
  *
- * @param array  $error Error that was triggered.
- *
- * @return array|false array( 'slug' => (string), 'type' => 'plugin' | 'theme' )
- *                     Slug is the plugin or theme directory as opposed to the full file.
- *                     Or false on error.
+ * @return string Formatted error description.
  */
-function wp_get_extension_for_error( $error ) {
-	global $wp_theme_directories;
+function wp_get_extension_error_description( $error ) {
+	$constants   = get_defined_constants( true );
+	$constants   = isset( $constants['Core'] ) ? $constants['Core'] : $constants['internal'];
+	$core_errors = array();
 
-	if ( ! isset( $error['file'] ) ) {
-		return false;
-	}
-
-	if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
-		return false;
-	}
-
-	$error_file    = wp_normalize_path( $error['file'] );
-	$wp_plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
-
-	if ( 0 === strpos( $error_file, $wp_plugin_dir ) ) {
-		$path  = str_replace( $wp_plugin_dir . '/', '', $error_file );
-		$parts = explode( '/', $path );
-
-		return array( 'type' => 'plugin', 'slug' => $parts[0] );
-	}
-
-	if ( empty( $wp_theme_directories ) ) {
-		return false;
-	}
-
-	foreach ( $wp_theme_directories as $theme_directory ) {
-		$theme_directory = wp_normalize_path( $theme_directory );
-
-		if ( 0 === strpos( $error_file, $theme_directory ) ) {
-			$path  = str_replace( $theme_directory . '/', '', $error_file );
-			$parts = explode( '/', $path );
-
-			return array( 'type' => 'theme', 'slug' => $parts[0] );
+	foreach ( $constants as $constant => $value ) {
+		if ( 0 === strpos( $constant, 'E_' ) ) {
+			$core_errors[ $value ] = $constant;
 		}
 	}
 
-	return false;
+	if ( isset( $core_errors[ $error['type'] ] ) ) {
+		$error['type'] = $core_errors[ $error['type'] ];
+	}
+
+	/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
+	$error_message = __( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
+
+	return sprintf(
+		$error_message,
+		"<code>{$error['type']}</code>",
+		"<code>{$error['line']}</code>",
+		"<code>{$error['file']}</code>",
+		"<code>{$error['message']}</code>"
+	);
 }
 
 /**
@@ -136,43 +120,17 @@ function wp_is_fatal_error_handler_enabled() {
 }
 
 /**
- * Access the WordPress Recovery Mode controller.
+ * Access the WordPress Recovery Mode instance.
  *
  * @since 5.2.0
  *
- * @return WP_Recovery_Mode_Controller
+ * @return WP_Recovery_Mode
  */
 function wp_recovery_mode() {
 	static $wp_recovery_mode;
 
 	if ( ! $wp_recovery_mode ) {
-		$default = new WP_Recovery_Mode_Email_Controller(
-			new WP_Recovery_Mode_Cookie_Service(),
-			new WP_Recovery_Mode_Key_Service()
-		);
-
-		if ( defined( 'WP_CONTENT_DIR' ) && is_readable( WP_CONTENT_DIR . '/recovery-mode-controller.php' ) ) {
-			$wp_recovery_mode = include WP_CONTENT_DIR . '/recovery-mode-controller.php';
-		}
-
-		if ( ! $wp_recovery_mode instanceof WP_Recovery_Mode_Controller ) {
-			$wp_recovery_mode = $default;
-		}
-
-		/**
-		 * Filter the recovery mode controller.
-		 *
-		 * This filter can only be used by mu-plugins.
-		 *
-		 * @since 5.2.0
-		 *
-		 * @param WP_Recovery_Mode_Controller $wp_recovery_mode
-		 */
-		$wp_recovery_mode = apply_filters( 'wp_recovery_mode_controller', $wp_recovery_mode );
-
-		if ( ! $wp_recovery_mode instanceof WP_Recovery_Mode_Controller ) {
-			$wp_recovery_mode = $default;
-		}
+		$wp_recovery_mode = new WP_Recovery_Mode();
 	}
 
 	return $wp_recovery_mode;

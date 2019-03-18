@@ -1,17 +1,48 @@
 <?php
+/**
+ * Error Protection API: WP_Recovery_Mode_Cookie_Service class
+ *
+ * @package WordPress
+ * @since   5.2.0
+ */
 
+/**
+ * Core class used to set, validate, and clear cookies that identify a Recovery Mode session.
+ *
+ * @since 5.2.0
+ */
 final class WP_Recovery_Mode_Cookie_Service {
 
-	/** @var string */
+	/**
+	 * The cookie name to use.
+	 *
+	 * @since 5.2.0
+	 * @var string
+	 */
 	private $name;
 
-	/** @var string */
+	/**
+	 * The domain the cookie should be set on, {@see setcookie()}.
+	 *
+	 * @since 5.2.0
+	 * @var string
+	 */
 	private $domain;
 
-	/** @var string */
+	/**
+	 * The path to limit the cookie to, {@see setcookie()}.
+	 *
+	 * @since 5.2.0
+	 * @var string
+	 */
 	private $path;
 
-	/** @var string */
+	/**
+	 * The path to use when the home_url and site_url are different.
+	 *
+	 * @since 5.2.0
+	 * @var string
+	 */
 	private $site_path;
 
 	/**
@@ -193,11 +224,6 @@ final class WP_Recovery_Mode_Cookie_Service {
 	 * @return string
 	 */
 	private function generate_cookie() {
-
-		if ( ! function_exists( 'wp_generate_password' ) ) {
-			require_once ABSPATH . WPINC . '/pluggable.php';
-		}
-
 		$to_sign = sprintf( 'recovery_mode|%s|%s', time(), wp_generate_password( 20, false ) );
 		$signed  = $this->recovery_mode_hash( $to_sign );
 

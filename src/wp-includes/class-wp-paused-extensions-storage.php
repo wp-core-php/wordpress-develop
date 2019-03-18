@@ -38,7 +38,7 @@ class WP_Paused_Extensions_Storage {
 	 */
 	public function __construct( $extension_type ) {
 		$this->type = $extension_type;
-		$this->option_name = wp_recovery_mode()->get_recovery_mode_session_id() . '_paused_extensions';
+		$this->option_name = wp_recovery_mode()->get_session_id() . '_paused_extensions';
 	}
 
 	/**

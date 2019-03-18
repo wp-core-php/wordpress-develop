@@ -879,7 +879,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$error = wp_get_plugin_error( $plugin_file );
 
 						if ( false !== $error ) {
-							printf( '<div class="error-display"><p>%s</p></div>', wp_get_plugin_error_description( $error ) );
+							printf( '<div class="error-display"><p>%s</p></div>', wp_get_extension_error_description( $error ) );
 						}
 					}
 

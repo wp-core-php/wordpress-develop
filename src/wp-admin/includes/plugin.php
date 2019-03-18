@@ -468,15 +468,14 @@ function get_dropins() {
  */
 function _get_dropins() {
 	$dropins = array(
-		'advanced-cache.php'           => array( __( 'Advanced caching plugin.' ), 'WP_CACHE' ), // WP_CACHE
-		'db.php'                       => array( __( 'Custom database class.' ), true ), // auto on load
-		'db-error.php'                 => array( __( 'Custom database error message.' ), true ), // auto on error
-		'install.php'                  => array( __( 'Custom installation script.' ), true ), // auto on installation
-		'maintenance.php'              => array( __( 'Custom maintenance message.' ), true ), // auto on maintenance
-		'object-cache.php'             => array( __( 'External object cache.' ), true ), // auto on load
-		'php-error.php'                => array( __( 'Custom PHP error message.' ), true ), // auto on error
-		'fatal-error-handler.php'      => array( __( 'Custom PHP fatal error handler.' ), true ), // auto on error
-		'recovery-mode-controller.php' => array( __( 'Custom recovery mode controller.' ), true ), // auto on error
+		'advanced-cache.php'      => array( __( 'Advanced caching plugin.' ), 'WP_CACHE' ), // WP_CACHE
+		'db.php'                  => array( __( 'Custom database class.' ), true ), // auto on load
+		'db-error.php'            => array( __( 'Custom database error message.' ), true ), // auto on error
+		'install.php'             => array( __( 'Custom installation script.' ), true ), // auto on installation
+		'maintenance.php'         => array( __( 'Custom maintenance message.' ), true ), // auto on maintenance
+		'object-cache.php'        => array( __( 'External object cache.' ), true ), // auto on load
+		'php-error.php'           => array( __( 'Custom PHP error message.' ), true ), // auto on error
+		'fatal-error-handler.php' => array( __( 'Custom PHP fatal error handler.' ), true ), // auto on error
 	);
 
 	if ( is_multisite() ) {
@@ -2154,42 +2153,6 @@ function wp_get_plugin_error( $plugin ) {
 	}
 
 	return $GLOBALS['_paused_plugins'][ $plugin ];
-}
-
-/**
- * Get a human readable description of the plugin error.
- *
- * @since 5.2.0
- *
- * @param array $error Error from {@see wp_get_plugin_error()}
- *
- * @return string Formatted error description.
- */
-function wp_get_plugin_error_description( $error ) {
-	$constants   = get_defined_constants( true );
-	$constants   = isset( $constants['Core'] ) ? $constants['Core'] : $constants['internal'];
-	$core_errors = array();
-
-	foreach ( $constants as $constant => $value ) {
-		if ( 0 === strpos( $constant, 'E_' ) ) {
-			$core_errors[ $value ] = $constant;
-		}
-	}
-
-	if ( isset( $core_errors[ $error['type'] ] ) ) {
-		$error['type'] = $core_errors[ $error['type'] ];
-	}
-
-	/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
-	$error_message = __( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
-
-	return sprintf(
-		$error_message,
-		"<code>{$error['type']}</code>",
-		"<code>{$error['line']}</code>",
-		"<code>{$error['file']}</code>",
-		"<code>{$error['message']}</code>"
-	);
 }
 
 /**

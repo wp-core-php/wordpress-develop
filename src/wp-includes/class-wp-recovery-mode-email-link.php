@@ -1,107 +1,44 @@
 <?php
+/**
+ * Error Protection API: WP_Recovery_Mode_Email_Link class
+ *
+ * @package WordPress
+ * @since   5.2.0
+ */
 
-final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Controller {
+/**
+ * Core class used to send an email with a link to begin Recovery Mode.
+ *
+ * @since 5.2.0
+ */
+final class WP_Recovery_Mode_Email_Link {
 
+	const RATE_LIMIT_OPTION = 'recovery_mode_email_last_sent';
 	const LOGIN_ACTION_ENTER = 'enter_recovery_mode';
 	const LOGIN_ACTION_ENTERED = 'entered_recovery_mode';
 
-	/** @var WP_Recovery_Mode_Cookie_Service */
-	private $cookies;
-
-	/** @var WP_Recovery_Mode_Key_Service */
+	/**
+	 * Service to handle generating and validating email keys.
+	 *
+	 * @since 5.2.0
+	 * @var WP_Recovery_Mode_Key_Service
+	 */
 	private $keys;
 
-	/** @var bool */
-	private $is_active;
-
-	/** @var string|false */
-	private $session_id = false;
-
 	/**
-	 * WP_Recovery_Mode_Email_Processor constructor.
-	 *
-	 * @param WP_Recovery_Mode_Cookie_Service $cookies
-	 * @param WP_Recovery_Mode_Key_Service    $keys
-	 */
-	public function __construct( WP_Recovery_Mode_Cookie_Service $cookies, WP_Recovery_Mode_Key_Service $keys ) {
-		$this->cookies = $cookies;
-		$this->keys    = $keys;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function is_recovery_mode_active() {
-		return $this->is_active;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function get_recovery_mode_session_id() {
-		return $this->session_id;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function run() {
-		add_action( 'clear_auth_cookie', array( $this, 'on_clear_auth_cookie' ) );
-
-		if ( $this->cookies->is_cookie_set() ) {
-			$this->handle_cookie();
-
-			return;
-		}
-
-		if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
-			$this->handle_begin_link();
-		}
-	}
-
-	/**
-	 * When a fatal error occurs, send the recovery mode email.
+	 * Service to handle cookies.
 	 *
 	 * @since 5.2.0
-	 *
-	 * @param array $error Error details from {@see error_get_last()}
+	 * @var WP_Recovery_Mode_Cookie_Service
 	 */
-	public function handle_error( array $error ) {
-		if ( is_protected_endpoint() ) {
-			$this->maybe_send_recovery_mode_email( $error );
-		}
-	}
+	private $cookies;
 
 	/**
-	 * Clear the recovery mode cookie when the auth cookies are cleared.
-	 *
-	 * @since 5.2.0
+	 * WP_Recovery_Mode_Email constructor.
 	 */
-	public function on_clear_auth_cookie() {
-		/** This filter is documented in wp-includes/pluggable.php */
-		if ( ! apply_filters( 'send_auth_cookies', true ) ) {
-			return;
-		}
-
-		$this->cookies->clear_cookie();
-	}
-
-	/**
-	 * Handle checking for the recovery mode cookie and validating it.
-	 *
-	 * @since 5.2.0
-	 */
-	private function handle_cookie() {
-		$validated = $this->cookies->validate_cookie();
-
-		if ( is_wp_error( $validated ) ) {
-			$this->cookies->clear_cookie();
-
-			wp_die( $validated, '' );
-		}
-
-		$this->is_active  = true;
-		$this->session_id = $this->cookies->get_session_id_from_cookie();
+	public function __construct() {
+		$this->keys    = new WP_Recovery_Mode_Key_Service();
+		$this->cookies = new WP_Recovery_Mode_Cookie_Service();
 	}
 
 	/**
@@ -109,9 +46,13 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 *
 	 * @since 5.2.0
 	 */
-	private function handle_begin_link() {
+	public function handle_begin_link() {
 		if ( ! isset( $_GET['action'], $_GET['rm_key'] ) || self::LOGIN_ACTION_ENTER !== $_GET['action'] ) {
 			return;
+		}
+
+		if ( ! function_exists( 'wp_generate_password' ) ) {
+			require_once ABSPATH . WPINC . '/pluggable.php';
 		}
 
 		$validated = $this->keys->validate_recovery_mode_key( $_GET['rm_key'], $this->get_link_valid_for_interval() );
@@ -122,14 +63,63 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 
 		$this->cookies->set_cookie();
 
-		// This should be loaded by set_recovery_mode_cookie() but load it again to be safe.
-		if ( ! function_exists( 'wp_redirect' ) ) {
-			require_once ABSPATH . WPINC . '/pluggable.php';
-		}
-
 		$url = add_query_arg( 'action', self::LOGIN_ACTION_ENTERED, wp_login_url() );
 		wp_redirect( $url );
 		die;
+	}
+
+	/**
+	 * Send the recovery mode email if the rate limit has not been sent.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array $error Error details from {@see error_get_last()}
+	 * @param array $extension The extension that caused the error. {
+	 *      @type string $slug The extension slug. This is the plugin or theme's directory.
+	 *      @type string $type The extension type. Either 'plugin' or 'theme'.
+	 * }
+	 *
+	 * @return true|WP_Error True if email sent, WP_Error otherwise.
+	 */
+	public function maybe_send_recovery_mode_email( $error, $extension ) {
+
+		$rate_limit = $this->get_email_rate_limit();
+
+		$last_sent = get_site_option( self::RATE_LIMIT_OPTION );
+
+		if ( ! $last_sent || time() > $last_sent + $rate_limit ) {
+			if ( ! update_site_option( self::RATE_LIMIT_OPTION, time() ) ) {
+				return new WP_Error( 'storage_error',	__( 'Could not update the email last sent time.' ) );
+			}
+
+			$sent = $this->send_recovery_mode_email( $error, $extension );
+
+			if ( $sent ) {
+				return true;
+			}
+
+			return new WP_Error( 'email_failed', __( 'The email could not be sent. Possible reason: your host may have disabled the mail() function.' ) );
+		}
+
+		$err_message = sprintf(
+		/* translators: 1. Last sent as a human time diff 2. Wait time as a human time diff. */
+			__( 'A recovery link was already sent %1$s ago. Please wait another %2$s before requesting a new email.' ),
+			human_time_diff( $last_sent ),
+			human_time_diff( $last_sent + $rate_limit )
+		);
+
+		return new WP_Error( 'email_sent_already', $err_message );
+	}
+
+	/**
+	 * Clear the rate limit, allowing a new recovery mode email to be sent immediately.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return bool
+	 */
+	public function clear_rate_limit() {
+		return delete_site_option( self::RATE_LIMIT_OPTION );
 	}
 
 	/**
@@ -206,51 +196,16 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	}
 
 	/**
-	 * Send the recovery mode email if the rate limit has not been sent.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param array $error Error details from {@see error_get_last()}
-	 *
-	 * @return true|WP_Error True if email sent, WP_Error otherwise.
-	 */
-	private function maybe_send_recovery_mode_email( $error ) {
-
-		$rate_limit = $this->get_email_rate_limit();
-
-		$last_sent = get_site_option( 'recovery_mode_email_last_sent' );
-
-		if ( ! $last_sent || time() > $last_sent + $rate_limit ) {
-			$sent = $this->send_recovery_mode_email( $error );
-			update_site_option( 'recovery_mode_email_last_sent', time() );
-
-			if ( $sent ) {
-				return true;
-			}
-
-			return new WP_Error( 'email_failed', __( 'The email could not be sent. Possible reason: your host may have disabled the mail() function.' ) );
-		}
-
-		$err_message = sprintf(
-		/* translators: 1. Last sent as a human time diff 2. Wait time as a human time diff. */
-			__( 'A recovery link was already sent %1$s ago. Please wait another %2$s before requesting a new email.' ),
-			human_time_diff( $last_sent ),
-			human_time_diff( $last_sent + $rate_limit )
-		);
-
-		return new WP_Error( 'email_sent_already', $err_message );
-	}
-
-	/**
 	 * Send the Recovery Mode email to the site admin email address.
 	 *
 	 * @since 5.2.0
 	 *
 	 * @param array $error Error details from {@see error_get_last()}
+	 * @param array $extension Extension that caused the error.
 	 *
 	 * @return bool Whether the email was sent successfully.
 	 */
-	private function send_recovery_mode_email( $error ) {
+	private function send_recovery_mode_email( $error, $extension ) {
 
 		$key      = $this->keys->generate_and_store_recovery_mode_key();
 		$url      = $this->get_recovery_mode_begin_url( $key );
@@ -263,11 +218,9 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 			$switched_locale = switch_to_locale( get_locale() );
 		}
 
-		$extension = wp_get_extension_for_error( $error );
-
 		if ( $extension ) {
 			$cause   = $this->get_cause( $extension );
-			$details = $this->get_error_details( $error );
+			$details = wp_strip_all_tags( wp_get_extension_error_description( $error ) );
 
 			if ( $details ) {
 				$header  = __( 'Error Details' );
@@ -351,42 +304,6 @@ This link expires in ###EXPIRES###.
 		}
 
 		return get_option( 'admin_email' );
-	}
-
-	/**
-	 * Get a human readable description of the error.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param array $error Error details from {@see error_get_last()}
-	 *
-	 * @return string
-	 */
-	private function get_error_details( $error ) {
-		$constants   = get_defined_constants( true );
-		$constants   = isset( $constants['Core'] ) ? $constants['Core'] : $constants['internal'];
-		$core_errors = array();
-
-		foreach ( $constants as $constant => $value ) {
-			if ( 0 === strpos( $constant, 'E_' ) ) {
-				$core_errors[ $value ] = $constant;
-			}
-		}
-
-		if ( isset( $core_errors[ $error['type'] ] ) ) {
-			$error['type'] = $core_errors[ $error['type'] ];
-		}
-
-		/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
-		$error_message = __( "An error of type %1\$s in line %2\$s of the file %3\$s. \nError message: %4\$s" );
-
-		return sprintf(
-			$error_message,
-			$error['type'],
-			$error['line'],
-			$error['file'],
-			$error['message']
-		);
 	}
 
 	/**

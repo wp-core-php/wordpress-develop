@@ -38,15 +38,7 @@ class WP_Fatal_Error_Handler {
 				return;
 			}
 
-			if ( wp_is_recovery_mode() ) {
-				// If the error was stored and thus the extension paused,
-				// redirect the request to catch multiple errors in one go.
-				if ( $this->store_error( $error ) ) {
-					$this->redirect_protected();
-				}
-			} else {
-				wp_recovery_mode()->handle_error( $error );
-			}
+			wp_recovery_mode()->handle_error( $error );
 
 			// Display the PHP error template.
 			$this->display_error_template();
@@ -100,55 +92,6 @@ class WP_Fatal_Error_Handler {
 		);
 
 		return in_array( $error['type'], $error_types_to_handle, true );
-	}
-
-	/**
-	 * Stores the given error so that the extension causing it is paused.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param array $error Error that was triggered.
-	 *
-	 * @return bool True if the error was stored successfully, false otherwise.
-	 */
-	protected function store_error( $error ) {
-		$extension = wp_get_extension_for_error( $error );
-
-		if ( ! $extension ) {
-			return false;
-		}
-
-		switch ( $extension['type'] ) {
-			case 'plugin':
-				return wp_paused_plugins()->set( $extension['slug'], $error );
-			case 'theme':
-				return wp_paused_themes()->set( $extension['slug'], $error );
-			default:
-				return false;
-		}
-	}
-
-	/**
-	 * Redirects the current request to allow recovering multiple errors in one go.
-	 *
-	 * The redirection will only happen when on a protected endpoint.
-	 *
-	 * It must be ensured that this method is only called when an error actually occurred and will not occur on the
-	 * next request again. Otherwise it will create a redirect loop.
-	 *
-	 * @since 5.2.0
-	 */
-	protected function redirect_protected() {
-		// Pluggable is usually loaded after plugins, so we manually include it here for redirection functionality.
-		if ( ! function_exists( 'wp_redirect' ) ) {
-			include ABSPATH . WPINC . '/pluggable.php';
-		}
-
-		$scheme = is_ssl() ? 'https://' : 'http://';
-
-		$url = "{$scheme}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-		wp_redirect( $url );
-		exit;
 	}
 
 	/**

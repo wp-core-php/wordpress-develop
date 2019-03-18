@@ -817,7 +817,7 @@ function wp_skip_paused_themes( array $themes ) {
  * @return bool
  */
 function wp_is_recovery_mode() {
-	return wp_recovery_mode()->is_recovery_mode_active();
+	return wp_recovery_mode()->is_active();
 }
 
 /**
