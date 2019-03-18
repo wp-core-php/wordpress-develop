@@ -350,8 +350,10 @@ wp_start_scraping_edited_file_errors();
 // Register the default theme directory root
 register_theme_directory( get_theme_root() );
 
+if ( ! is_multisite() ) {
 // Handle users requesting a recovery mode link and initiating recovery mode.
-wp_recovery_mode()->initialize();
+	wp_recovery_mode()->initialize();
+}
 
 // Load active plugins.
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
