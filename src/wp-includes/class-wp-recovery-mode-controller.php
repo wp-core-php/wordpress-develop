@@ -18,6 +18,15 @@ interface WP_Recovery_Mode_Controller {
 	public function run();
 
 	/**
+	 * Handle a fatal error occurring when recovery mode is not yet active.
+	 *
+	 * @param array $error Error details {@see error_get_last()}
+	 *
+	 * @return void
+	 */
+	public function handle_error( array $error );
+
+	/**
 	 * Is recovery mode active.
 	 *
 	 * @since 5.2.0

@@ -45,14 +45,7 @@ class WP_Fatal_Error_Handler {
 					$this->redirect_protected();
 				}
 			} else {
-				/**
-				 * Fires when a fatal errors occurs.
-				 *
-				 * @since 5.2.0
-				 *
-				 * @param array $error Error details from {@see error_get_last()}
-				 */
-				do_action( 'handle_fatal_error', $error );
+				wp_recovery_mode()->handle_error( $error );
 			}
 
 			// Display the PHP error template.

@@ -46,7 +46,6 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 * @inheritdoc
 	 */
 	public function run() {
-		add_action( 'handle_fatal_error', array( $this, 'on_fatal_error' ) );
 		add_action( 'clear_auth_cookie', array( $this, 'on_clear_auth_cookie' ) );
 
 		if ( $this->cookies->is_cookie_set() ) {
@@ -67,7 +66,7 @@ final class WP_Recovery_Mode_Email_Controller implements WP_Recovery_Mode_Contro
 	 *
 	 * @param array $error Error details from {@see error_get_last()}
 	 */
-	public function on_fatal_error( $error ) {
+	public function handle_error( array $error ) {
 		if ( is_protected_endpoint() ) {
 			$this->maybe_send_recovery_mode_email( $error );
 		}
