@@ -817,31 +817,6 @@ function wp_get_theme_error( $theme ) {
 }
 
 /**
- * Gets the number of sites on which a specific theme is paused.
- *
- * @since 5.2.0
- *
- * @param string $theme Path to the theme directory relative to the themes directory.
- * @return int Site count.
- */
-function count_paused_theme_sites_for_network( $theme ) {
-	if ( ! is_multisite() ) {
-		return is_theme_paused( $theme ) ? 1 : 0;
-	}
-
-	$query_args = array(
-		'count'      => true,
-		'number'     => 0,
-		'network_id' => get_current_network_id(),
-		'meta_query' => array(
-			wp_paused_extensions()->get_site_meta_query_clause( 'theme', $theme ),
-		),
-	);
-
-	return get_sites( $query_args );
-}
-
-/**
  * Tries to resume a single theme.
  *
  * @since 5.2.0

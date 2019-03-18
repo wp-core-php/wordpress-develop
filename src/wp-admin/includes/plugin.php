@@ -2123,7 +2123,7 @@ function is_plugin_paused( $plugin ) {
 		return false;
 	}
 
-	if ( ! is_plugin_active( $plugin ) && ! is_plugin_active_for_network( $plugin ) ) {
+	if ( ! is_plugin_active( $plugin ) ) {
 		return false;
 	}
 
@@ -2193,33 +2193,6 @@ function wp_get_plugin_error_description( $error ) {
 }
 
 /**
- * Gets the number of sites on which a specific plugin is paused.
- *
- * @since 5.2.0
- *
- * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return int Site count.
- */
-function count_paused_plugin_sites_for_network( $plugin ) {
-	if ( ! is_multisite() ) {
-		return is_plugin_paused( $plugin ) ? 1 : 0;
-	}
-
-	list( $plugin ) = explode( '/', $plugin );
-
-	$query_args = array(
-		'count'      => true,
-		'number'     => 0,
-		'network_id' => get_current_network_id(),
-		'meta_query' => array(
-			wp_paused_extensions()->get_site_meta_query_clause( 'plugin', $plugin ),
-		),
-	);
-
-	return get_sites( $query_args );
-}
-
-/**
  * Tries to resume a single plugin.
  *
  * If a redirect was provided, we first ensure the plugin does not throw fatal
@@ -2233,12 +2206,10 @@ function count_paused_plugin_sites_for_network( $plugin ) {
  *
  * @param string $plugin       Single plugin to resume.
  * @param string $redirect     Optional. URL to redirect to. Default empty string.
- * @param bool   $network_wide Optional. Whether to resume the plugin for the entire
- *                             network. Default false.
  * @return bool|WP_Error True on success, false if `$plugin` was not paused,
  *                       `WP_Error` on failure.
  */
-function resume_plugin( $plugin, $redirect = '', $network_wide = false ) {
+function resume_plugin( $plugin, $redirect = '' ) {
 	/*
 	 * We'll override this later if the plugin could be included without
 	 * creating a fatal error.
@@ -2258,7 +2229,7 @@ function resume_plugin( $plugin, $redirect = '', $network_wide = false ) {
 		ob_clean();
 	}
 
-	$result = wp_forget_extension_error( 'plugin', $plugin, $network_wide );
+	$result = wp_forget_extension_error( 'plugin', $plugin );
 
 	if ( ! $result ) {
 		return new WP_Error(
@@ -2280,7 +2251,7 @@ function paused_plugins_notice() {
 		return;
 	}
 
-	if ( ! current_user_can( 'deactivate_plugins' ) ) {
+	if ( ! current_user_can( 'resume_plugins' ) ) {
 		return;
 	}
 

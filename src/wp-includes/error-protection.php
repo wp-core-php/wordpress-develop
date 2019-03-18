@@ -100,12 +100,10 @@ function wp_get_extension_for_error( $error ) {
  *
  * @param string $type         Type of the extension.
  * @param string $extension    Relative path of the extension.
- * @param bool   $network_wide Optional. Whether to resume the plugin for the entire
- *                             network. Default false.
  *
  * @return bool Whether the extension error was successfully forgotten.
  */
-function wp_forget_extension_error( $type, $extension, $network_wide = false ) {
+function wp_forget_extension_error( $type, $extension ) {
 
 	list( $extension ) = explode( '/', $extension );
 
@@ -113,15 +111,7 @@ function wp_forget_extension_error( $type, $extension, $network_wide = false ) {
 		return false;
 	}
 
-	$storage = wp_paused_extensions();
-
-	// Handle manually since the regular APIs do not expose this functionality.
-	if ( $network_wide && is_site_meta_supported() ) {
-		$site_meta_query_clause = $storage->get_site_meta_query_clause( $type, $extension );
-		return delete_metadata( 'blog', 0, $site_meta_query_clause['key'], '', true );
-	}
-
-	return $storage->forget( $type, $extension );
+	return wp_paused_extensions()->forget( $type, $extension );
 }
 
 /**

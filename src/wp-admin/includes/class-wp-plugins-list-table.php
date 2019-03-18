@@ -210,9 +210,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				if ( $show_network_active ) {
 					// On the non-network screen, show network-active plugins if allowed
 					$plugins['active'][ $plugin_file ] = $plugin_data;
-					if ( is_plugin_paused( $plugin_file ) ) {
-						$plugins['paused'][ $plugin_file ] = $plugin_data;
-					}
 				} else {
 					// On the non-network screen, filter out network-active plugins
 					unset( $plugins['all'][ $plugin_file ] );
@@ -222,7 +219,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				// On the non-network screen, populate the active list with plugins that are individually activated
 				// On the network-admin screen, populate the active list with plugins that are network activated
 				$plugins['active'][ $plugin_file ] = $plugin_data;
-				if ( is_plugin_paused( $plugin_file ) ) {
+
+				if ( ! $screen->in_admin( 'network' ) && is_plugin_paused( $plugin_file ) ) {
 					$plugins['paused'][ $plugin_file ] = $plugin_data;
 				}
 			} else {
@@ -644,18 +642,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						/* translators: %s: plugin name */
 						$actions['deactivate'] = '<a href="' . wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Deactivate' ) . '</a>';
 					}
-					if ( current_user_can( 'manage_network_plugins' ) && count_paused_plugin_sites_for_network( $plugin_file ) ) {
-						/* translators: %s: plugin name */
-						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Network Resume %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Resume' ) . '</a>';
-					}
 				} else {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						/* translators: %s: plugin name */
 						$actions['activate'] = '<a href="' . wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ) . '" class="edit" aria-label="' . esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Activate' ) . '</a>';
-					}
-					if ( current_user_can( 'manage_network_plugins' ) && count_paused_plugin_sites_for_network( $plugin_file ) ) {
-						/* translators: %s: plugin name */
-						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Network Resume %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Network Resume' ) . '</a>';
 					}
 					if ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $plugin_file ) ) {
 						/* translators: %s: plugin name */
@@ -667,10 +657,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					$actions = array(
 						'network_active' => __( 'Network Active' ),
 					);
-					if ( ! $restrict_network_only && current_user_can( 'resume_plugin', $plugin_file ) && is_plugin_paused( $plugin_file ) ) {
-						/* translators: %s: plugin name */
-						$actions['resume'] = '<a class="resume-link" href="' . wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ) . '" aria-label="' . esc_attr( sprintf( _x( 'Resume %s', 'plugin' ), $plugin_data['Name'] ) ) . '">' . __( 'Resume' ) . '</a>';
-					}
 				} elseif ( $restrict_network_only ) {
 					$actions = array(
 						'network_only' => __( 'Network Only' ),
@@ -791,7 +777,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$class .= ' update';
 		}
 
-		$paused = is_plugin_paused( $plugin_file );
+		$paused = ! $screen->in_admin( 'network' ) && is_plugin_paused( $plugin_file );
 
 		if ( $paused ) {
 			$class .= ' paused';

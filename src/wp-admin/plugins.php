@@ -390,18 +390,17 @@ if ( $action ) {
 			break;
 
 		case 'resume':
+			if ( is_multisite() && is_network_admin() ) {
+				return;
+			}
+
 			if ( ! current_user_can( 'resume_plugin', $plugin ) ) {
 				wp_die( __( 'Sorry, you are not allowed to resume this plugin.' ) );
 			}
 
-			if ( is_multisite() && ! is_network_admin() && is_network_only_plugin( $plugin ) ) {
-				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
-				exit;
-			}
-
 			check_admin_referer( 'resume-plugin_' . $plugin );
 
-			$result = resume_plugin( $plugin, self_admin_url( 'plugins.php?error=resuming' ), is_network_admin() );
+			$result = resume_plugin( $plugin, self_admin_url( 'plugins.php?error=resuming' ) );
 
 			if ( is_wp_error( $result ) ) {
 				wp_die( $result );

@@ -203,22 +203,6 @@ class WP_Paused_Extensions_Storage {
 	}
 
 	/**
-	 * Gets the site meta query clause for querying sites with paused extensions.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param string $type      Extension type. Either 'plugin' or 'theme'.
-	 * @param string $extension Plugin or theme directory name.
-	 * @return array A single clause to add to a meta query.
-	 */
-	public function get_site_meta_query_clause( $type, $extension ) {
-		return array(
-			'key'         => $this->get_site_meta_key( $type, $extension ),
-			'compare_key' => '=',
-		);
-	}
-
-	/**
 	 * Checks whether the underlying API to store paused extensions is loaded.
 	 *
 	 * @since 5.2.0
