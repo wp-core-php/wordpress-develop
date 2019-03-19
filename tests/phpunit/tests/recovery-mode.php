@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @group error-protection
+ */
 class Tests_Recovery_Mode extends WP_UnitTestCase {
 
 	private static $subscriber;
@@ -19,6 +22,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		return parent::tearDownAfterClass();
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_generate_and_store_returns_recovery_key() {
 		$service = new WP_Recovery_Mode_Key_Service();
 		$key     = $service->generate_and_store_recovery_mode_key();
@@ -26,6 +32,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertNotWPError( $key );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_verify_recovery_mode_key_returns_wp_error_if_no_key_set() {
 		$service = new WP_Recovery_Mode_Key_Service();
 		$error   = $service->validate_recovery_mode_key( 'abcd', HOUR_IN_SECONDS );
@@ -34,6 +43,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'no_recovery_key_set', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_verify_recovery_mode_key_returns_wp_error_if_stored_format_is_invalid() {
 		update_site_option( 'recovery_key', 'gibberish' );
 
@@ -44,6 +56,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'invalid_recovery_key_format', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_verify_recovery_mode_key_returns_wp_error_if_empty_key() {
 		$service = new WP_Recovery_Mode_Key_Service();
 		$service->generate_and_store_recovery_mode_key();
@@ -53,6 +68,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'hash_mismatch', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_verify_recovery_mode_key_returns_wp_error_if_hash_mismatch() {
 		$service = new WP_Recovery_Mode_Key_Service();
 		$service->generate_and_store_recovery_mode_key();
@@ -62,6 +80,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'hash_mismatch', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_verify_recovery_mode_key_returns_wp_error_if_expired() {
 		$service = new WP_Recovery_Mode_Key_Service();
 		$key     = $service->generate_and_store_recovery_mode_key();
@@ -76,12 +97,18 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'key_expired', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_verify_recovery_mode_key_returns_true_for_valid_key() {
 		$service = new WP_Recovery_Mode_Key_Service();
 		$key     = $service->generate_and_store_recovery_mode_key();
 		$this->assertTrue( $service->validate_recovery_mode_key( $key, HOUR_IN_SECONDS ) );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_validate_recovery_mode_cookie_returns_wp_error_if_invalid_format() {
 
 		$service = new WP_Recovery_Mode_Cookie_Service();
@@ -99,6 +126,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'invalid_format', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_validate_recovery_mode_cookie_returns_wp_error_if_expired() {
 		$service    = new WP_Recovery_Mode_Cookie_Service();
 		$reflection = new ReflectionMethod( $service, 'recovery_mode_hash' );
@@ -113,6 +143,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'expired', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_validate_recovery_mode_cookie_returns_wp_error_if_signature_mismatch() {
 		$service    = new WP_Recovery_Mode_Cookie_Service();
 		$reflection = new ReflectionMethod( $service, 'generate_cookie' );
@@ -126,6 +159,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'signature_mismatch', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_validate_recovery_mode_cookie_returns_wp_error_if_created_at_is_invalid_format() {
 		$service    = new WP_Recovery_Mode_Cookie_Service();
 		$reflection = new ReflectionMethod( $service, 'recovery_mode_hash' );
@@ -140,6 +176,9 @@ class Tests_Recovery_Mode extends WP_UnitTestCase {
 		$this->assertEquals( 'invalid_created_at', $error->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46130
+	 */
 	public function test_generate_and_validate_recovery_mode_cookie_returns_true_for_valid_cookie() {
 
 		$service    = new WP_Recovery_Mode_Cookie_Service();

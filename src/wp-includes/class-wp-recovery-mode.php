@@ -19,9 +19,17 @@ class WP_Recovery_Mode {
 	 * Service to handle sending an email with a recovery mode link.
 	 *
 	 * @since 5.2.0
-	 * @var WP_Recovery_Mode_Email_Link
+	 * @var WP_Recovery_Mode_Email_Service
 	 */
 	private $email;
+
+	/**
+	 * Service to generate and validate recovery mode links.
+	 *
+	 * @since 5.2.0
+	 * @var WP_Recovery_Mode_Link_Service
+	 */
+	private $link_handler;
 
 	/**
 	 * Service to handle cookies.
@@ -51,8 +59,9 @@ class WP_Recovery_Mode {
 	 * WP_Recovery_Mode constructor.
 	 */
 	public function __construct() {
-		$this->email   = new WP_Recovery_Mode_Email_Link();
-		$this->cookies = new WP_Recovery_Mode_Cookie_Service();
+		$this->email        = new WP_Recovery_Mode_Email_Service();
+		$this->link_handler = new WP_Recovery_Mode_Link_Service();
+		$this->cookies      = new WP_Recovery_Mode_Cookie_Service();
 	}
 
 	/**
@@ -78,9 +87,7 @@ class WP_Recovery_Mode {
 			return;
 		}
 
-		if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
-			$this->email->handle_begin_link();
-		}
+		$this->link_handler->handle_begin_link( $this->cookies, $this->get_link_ttl() );
 	}
 
 	/**
@@ -133,7 +140,7 @@ class WP_Recovery_Mode {
 				require_once ABSPATH . WPINC . '/pluggable.php';
 			}
 
-			return $this->email->maybe_send_recovery_mode_email( $error, $extension );
+			return $this->email->maybe_send_recovery_mode_email( $this->link_handler, $this->get_email_rate_limit(), $error, $extension );
 		}
 
 		if ( ! $this->store_error( $error ) ) {
@@ -218,6 +225,49 @@ class WP_Recovery_Mode {
 
 		$this->is_active  = true;
 		$this->session_id = $this->cookies->get_session_id_from_cookie();
+	}
+
+	/**
+	 * The rate limit between sending new recovery mode email links.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return int Rate limit in seconds.
+	 */
+	protected function get_email_rate_limit() {
+		/**
+		 * Filter the rate limit between sending new recovery mode email links.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param int $rate_limit Time to wait in seconds. Defaults to 4 hours.
+		 */
+		return apply_filters( 'recovery_mode_email_rate_limit', 4 * HOUR_IN_SECONDS );
+	}
+
+	/**
+	 * Get the number of seconds the recovery mode link is valid for.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return int Interval in seconds.
+	 */
+	protected function get_link_ttl() {
+
+		$rate_limit = $valid_for = $this->get_email_rate_limit();
+
+		/**
+		 * Filter the amount of time the recovery mode email link is valid for.
+		 *
+		 * The ttl must be at least as long as the email rate limit.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param int $valid_for The number of seconds the link is valid for.
+		 */
+		$valid_for = apply_filters( 'recovery_mode_email_link_ttl', $valid_for );
+
+		return max( $valid_for, $rate_limit );
 	}
 
 	/**

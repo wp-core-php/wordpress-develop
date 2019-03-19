@@ -61,7 +61,7 @@ function wp_get_extension_error_description( $error ) {
 	}
 
 	/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
-	$error_message = __( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
+	$error_message = __( 'An error of type %1$s was caused in line %2$s of the file %3$s. Error message: %4$s' );
 
 	return sprintf(
 		$error_message,

@@ -11,79 +11,26 @@
  *
  * @since 5.2.0
  */
-final class WP_Recovery_Mode_Email_Link {
+final class WP_Recovery_Mode_Email_Service {
 
 	const RATE_LIMIT_OPTION = 'recovery_mode_email_last_sent';
-	const LOGIN_ACTION_ENTER = 'enter_recovery_mode';
-	const LOGIN_ACTION_ENTERED = 'entered_recovery_mode';
-
-	/**
-	 * Service to handle generating and validating email keys.
-	 *
-	 * @since 5.2.0
-	 * @var WP_Recovery_Mode_Key_Service
-	 */
-	private $keys;
-
-	/**
-	 * Service to handle cookies.
-	 *
-	 * @since 5.2.0
-	 * @var WP_Recovery_Mode_Cookie_Service
-	 */
-	private $cookies;
-
-	/**
-	 * WP_Recovery_Mode_Email constructor.
-	 */
-	public function __construct() {
-		$this->keys    = new WP_Recovery_Mode_Key_Service();
-		$this->cookies = new WP_Recovery_Mode_Cookie_Service();
-	}
-
-	/**
-	 * Enter recovery mode when the user hits wp-login.php with a valid recovery mode link.
-	 *
-	 * @since 5.2.0
-	 */
-	public function handle_begin_link() {
-		if ( ! isset( $_GET['action'], $_GET['rm_key'] ) || self::LOGIN_ACTION_ENTER !== $_GET['action'] ) {
-			return;
-		}
-
-		if ( ! function_exists( 'wp_generate_password' ) ) {
-			require_once ABSPATH . WPINC . '/pluggable.php';
-		}
-
-		$validated = $this->keys->validate_recovery_mode_key( $_GET['rm_key'], $this->get_link_valid_for_interval() );
-
-		if ( is_wp_error( $validated ) ) {
-			wp_die( $validated, '' );
-		}
-
-		$this->cookies->set_cookie();
-
-		$url = add_query_arg( 'action', self::LOGIN_ACTION_ENTERED, wp_login_url() );
-		wp_redirect( $url );
-		die;
-	}
 
 	/**
 	 * Send the recovery mode email if the rate limit has not been sent.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array $error Error details from {@see error_get_last()}
-	 * @param array $extension The extension that caused the error. {
-	 *      @type string $slug The extension slug. This is the plugin or theme's directory.
+	 * @param WP_Recovery_Mode_Link_Service $link_service Service to generate recovery mode links.
+	 * @param int                           $rate_limit   Number of seconds before another email can be sent.
+	 * @param array                         $error        Error details from {@see error_get_last()}
+	 * @param array                         $extension    The extension that caused the error. {
+	 *      @type string $slug The extension slug. The plugin or theme's directory.
 	 *      @type string $type The extension type. Either 'plugin' or 'theme'.
 	 * }
 	 *
 	 * @return true|WP_Error True if email sent, WP_Error otherwise.
 	 */
-	public function maybe_send_recovery_mode_email( $error, $extension ) {
-
-		$rate_limit = $this->get_email_rate_limit();
+	public function maybe_send_recovery_mode_email( WP_Recovery_Mode_Link_Service $link_service, $rate_limit, $error, $extension ) {
 
 		$last_sent = get_site_option( self::RATE_LIMIT_OPTION );
 
@@ -92,7 +39,7 @@ final class WP_Recovery_Mode_Email_Link {
 				return new WP_Error( 'storage_error',	__( 'Could not update the email last sent time.' ) );
 			}
 
-			$sent = $this->send_recovery_mode_email( $error, $extension );
+			$sent = $this->send_recovery_mode_email( $link_service, $rate_limit, $error, $extension );
 
 			if ( $sent ) {
 				return true;
@@ -123,92 +70,20 @@ final class WP_Recovery_Mode_Email_Link {
 	}
 
 	/**
-	 * Get a URL to begin recovery mode.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param string $key Recovery Mode key created by {@see generate_and_store_recovery_mode_key()}
-	 *
-	 * @return string
-	 */
-	private function get_recovery_mode_begin_url( $key ) {
-
-		$url = add_query_arg(
-			array(
-				'action' => self::LOGIN_ACTION_ENTER,
-				'rm_key' => $key,
-			),
-			wp_login_url()
-		);
-
-		/**
-		 * Filter the URL to begin recovery mode.
-		 *
-		 * @since 5.2.0
-		 *
-		 * @param string $url
-		 * @param string $key
-		 */
-		return apply_filters( 'recovery_mode_begin_url', $url, $key );
-	}
-
-	/**
-	 * Get the interval the recovery mode email key is valid for.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return int Interval in seconds.
-	 */
-	private function get_link_valid_for_interval() {
-
-		$rate_limit = $valid_for = $this->get_email_rate_limit();
-
-		/**
-		 * Filter the amount of time the recovery mode email link is valid for.
-		 *
-		 * The interval time must be at least as long as the email rate limit.
-		 *
-		 * @since 5.2.0
-		 *
-		 * @param int $valid_for The number of seconds the link is valid for.
-		 */
-		$valid_for = apply_filters( 'recovery_mode_email_link_valid_for_interval', $valid_for );
-
-		return max( $valid_for, $rate_limit );
-	}
-
-	/**
-	 * The rate limit between sending new recovery mode email links.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return int Rate limit in seconds.
-	 */
-	private function get_email_rate_limit() {
-		/**
-		 * Filter the rate limit between sending new recovery mode email links.
-		 *
-		 * @since 5.2.0
-		 *
-		 * @param int $rate_limit Time to wait in seconds. Defaults to 4 hours.
-		 */
-		return apply_filters( 'recovery_mode_email_rate_limit', 4 * HOUR_IN_SECONDS );
-	}
-
-	/**
 	 * Send the Recovery Mode email to the site admin email address.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array $error Error details from {@see error_get_last()}
-	 * @param array $extension Extension that caused the error.
+	 * @param WP_Recovery_Mode_Link_Service $link_service Service to generate recovery mode links.
+	 * @param int                           $rate_limit   Number of seconds before another email can be sent.
+	 * @param array                         $error        Error details from {@see error_get_last()}
+	 * @param array                         $extension    Extension that caused the error.
 	 *
 	 * @return bool Whether the email was sent successfully.
 	 */
-	private function send_recovery_mode_email( $error, $extension ) {
+	private function send_recovery_mode_email( WP_Recovery_Mode_Link_Service $link_service, $rate_limit, $error, $extension ) {
 
-		$key      = $this->keys->generate_and_store_recovery_mode_key();
-		$url      = $this->get_recovery_mode_begin_url( $key );
+		$url = $link_service->generate_url();
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 		$switched_locale = false;
@@ -253,7 +128,7 @@ This link expires in ###EXPIRES###.
 			array(
 				$url,
 				'TBD',
-				human_time_diff( time() + $this->get_link_valid_for_interval() ),
+				human_time_diff( time() + $rate_limit ),
 				$cause ? "\n{$cause}\n" : "\n",
 				$details,
 			),
@@ -273,9 +148,9 @@ This link expires in ###EXPIRES###.
 		 * @since 5.2.0
 		 *
 		 * @param array  $email Used to build wp_mail().
-		 * @param string $key   Recovery mode key.
+		 * @param string $url   URL to enter recovery mode.
 		 */
-		$email = apply_filters( 'recovery_mode_email', $email, $key );
+		$email = apply_filters( 'recovery_mode_email', $email, $url );
 
 		$sent = wp_mail(
 			$email['to'],
@@ -335,12 +210,12 @@ This link expires in ###EXPIRES###.
 			}
 
 			// Multiple plugins can technically be in the same directory.
-			$cause = wp_sprintf( _n( 'This may be caused by the %l plugin.', 'This may be caused by the %l plugins.', count( $names ) ), $names );
+			$cause = wp_sprintf( _n( 'This was caused by the %l plugin.', 'This was be caused by the %l plugins.', count( $names ) ), $names );
 		} else {
 			$theme = wp_get_theme( $extension['slug'] );
 			$name  = $theme->exists() ? $theme->display( 'Name' ) : $extension['slug'];
 
-			$cause = sprintf( __( 'This may be caused by the %s theme.' ), $name );
+			$cause = sprintf( __( 'This was be caused by the %s theme.' ), $name );
 		}
 
 		return $cause;
