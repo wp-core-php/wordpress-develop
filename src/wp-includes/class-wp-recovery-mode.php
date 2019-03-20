@@ -390,7 +390,7 @@ class WP_Recovery_Mode {
 	 */
 	protected function redirect_protected() {
 		// Pluggable is usually loaded after plugins, so we manually include it here for redirection functionality.
-		if ( ! function_exists( 'wp_redirect' ) ) {
+		if ( ! function_exists( 'wp_safe_redirect' ) ) {
 			require_once ABSPATH . WPINC . '/pluggable.php';
 		}
 
