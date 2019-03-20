@@ -21,13 +21,24 @@ class WP_Recovery_Mode_Link_Service {
 	 * @since 5.2.0
 	 * @var WP_Recovery_Mode_Key_Service
 	 */
-	private $keys;
+	private $key_service;
+
+	/**
+	 * Service to handle cookies.
+	 *
+	 * @since 5.2.0
+	 * @var WP_Recovery_Mode_Cookie_Service
+	 */
+	private $cookie_service;
 
 	/**
 	 * WP_Recovery_Mode_Link_Service constructor.
+	 *
+	 * @param WP_Recovery_Mode_Cookie_Service $cookie_service Service to handle setting the recovery mode cookie.
 	 */
-	public function __construct() {
-		$this->keys = new WP_Recovery_Mode_Key_Service();
+	public function __construct( WP_Recovery_Mode_Cookie_Service $cookie_service ) {
+		$this->cookie_service = $cookie_service;
+		$this->key_service    = new WP_Recovery_Mode_Key_Service();
 	}
 
 	/**
@@ -40,7 +51,7 @@ class WP_Recovery_Mode_Link_Service {
 	 * @return string
 	 */
 	public function generate_url() {
-		$key = $this->keys->generate_and_store_recovery_mode_key();
+		$key = $this->key_service->generate_and_store_recovery_mode_key();
 
 		return $this->get_recovery_mode_begin_url( $key );
 	}
@@ -50,10 +61,9 @@ class WP_Recovery_Mode_Link_Service {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param WP_Recovery_Mode_Cookie_Service $cookies Service to set the recovery mode cookie if the link is valid.
-	 * @param int                             $ttl     Number of seconds the link should be valid for.
+	 * @param int $ttl Number of seconds the link should be valid for.
 	 */
-	public function handle_begin_link( WP_Recovery_Mode_Cookie_Service $cookies, $ttl ) {
+	public function handle_begin_link( $ttl ) {
 		if ( ! isset( $GLOBALS['pagenow'] ) || 'wp-login.php' !== $GLOBALS['pagenow'] ) {
 			return;
 		}
@@ -66,13 +76,13 @@ class WP_Recovery_Mode_Link_Service {
 			require_once ABSPATH . WPINC . '/pluggable.php';
 		}
 
-		$validated = $this->keys->validate_recovery_mode_key( $_GET['rm_key'], $ttl );
+		$validated = $this->key_service->validate_recovery_mode_key( $_GET['rm_key'], $ttl );
 
 		if ( is_wp_error( $validated ) ) {
 			wp_die( $validated, '' );
 		}
 
-		$cookies->set_cookie();
+		$this->cookie_service->set_cookie();
 
 		$url = add_query_arg( 'action', self::LOGIN_ACTION_ENTERED, wp_login_url() );
 		wp_redirect( $url );

@@ -16,21 +16,35 @@ final class WP_Recovery_Mode_Email_Service {
 	const RATE_LIMIT_OPTION = 'recovery_mode_email_last_sent';
 
 	/**
+	 * Service to generate recovery mode URLs.
+	 *
+	 * @since 5.2.0
+	 * @var WP_Recovery_Mode_Link_Service
+	 */
+	private $link_service;
+
+	/**
+	 * WP_Recovery_Mode_Email_Service constructor.
+	 *
+	 * @param WP_Recovery_Mode_Link_Service $link_service
+	 */
+	public function __construct( WP_Recovery_Mode_Link_Service $link_service ) { $this->link_service = $link_service; }
+
+	/**
 	 * Send the recovery mode email if the rate limit has not been sent.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param WP_Recovery_Mode_Link_Service $link_service Service to generate recovery mode links.
-	 * @param int                           $rate_limit   Number of seconds before another email can be sent.
-	 * @param array                         $error        Error details from {@see error_get_last()}
-	 * @param array                         $extension    The extension that caused the error. {
+	 * @param int   $rate_limit Number of seconds before another email can be sent.
+	 * @param array $error      Error details from {@see error_get_last()}
+	 * @param array $extension  The extension that caused the error. {
 	 *      @type string $slug The extension slug. The plugin or theme's directory.
 	 *      @type string $type The extension type. Either 'plugin' or 'theme'.
 	 * }
 	 *
 	 * @return true|WP_Error True if email sent, WP_Error otherwise.
 	 */
-	public function maybe_send_recovery_mode_email( WP_Recovery_Mode_Link_Service $link_service, $rate_limit, $error, $extension ) {
+	public function maybe_send_recovery_mode_email( $rate_limit, $error, $extension ) {
 
 		$last_sent = get_option( self::RATE_LIMIT_OPTION );
 
@@ -39,7 +53,7 @@ final class WP_Recovery_Mode_Email_Service {
 				return new WP_Error( 'storage_error',	__( 'Could not update the email last sent time.' ) );
 			}
 
-			$sent = $this->send_recovery_mode_email( $link_service, $rate_limit, $error, $extension );
+			$sent = $this->send_recovery_mode_email( $rate_limit, $error, $extension );
 
 			if ( $sent ) {
 				return true;
@@ -74,16 +88,15 @@ final class WP_Recovery_Mode_Email_Service {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param WP_Recovery_Mode_Link_Service $link_service Service to generate recovery mode links.
-	 * @param int                           $rate_limit   Number of seconds before another email can be sent.
-	 * @param array                         $error        Error details from {@see error_get_last()}
-	 * @param array                         $extension    Extension that caused the error.
+	 * @param int   $rate_limit Number of seconds before another email can be sent.
+	 * @param array $error      Error details from {@see error_get_last()}
+	 * @param array $extension  Extension that caused the error.
 	 *
 	 * @return bool Whether the email was sent successfully.
 	 */
-	private function send_recovery_mode_email( WP_Recovery_Mode_Link_Service $link_service, $rate_limit, $error, $extension ) {
+	private function send_recovery_mode_email( $rate_limit, $error, $extension ) {
 
-		$url = $link_service->generate_url();
+		$url = $this->link_service->generate_url();
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 		$switched_locale = false;

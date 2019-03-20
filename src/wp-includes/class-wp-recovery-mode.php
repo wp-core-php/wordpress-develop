@@ -21,7 +21,7 @@ class WP_Recovery_Mode {
 	 * @since 5.2.0
 	 * @var WP_Recovery_Mode_Email_Service
 	 */
-	private $email;
+	private $email_service;
 
 	/**
 	 * Service to generate and validate recovery mode links.
@@ -29,7 +29,7 @@ class WP_Recovery_Mode {
 	 * @since 5.2.0
 	 * @var WP_Recovery_Mode_Link_Service
 	 */
-	private $link_handler;
+	private $link_service;
 
 	/**
 	 * Service to handle cookies.
@@ -37,7 +37,7 @@ class WP_Recovery_Mode {
 	 * @since 5.2.0
 	 * @var WP_Recovery_Mode_Cookie_Service
 	 */
-	private $cookies;
+	private $cookie_service;
 
 	/**
 	 * Is recovery mode active in this session.
@@ -59,9 +59,9 @@ class WP_Recovery_Mode {
 	 * WP_Recovery_Mode constructor.
 	 */
 	public function __construct() {
-		$this->email        = new WP_Recovery_Mode_Email_Service();
-		$this->link_handler = new WP_Recovery_Mode_Link_Service();
-		$this->cookies      = new WP_Recovery_Mode_Cookie_Service();
+		$this->cookie_service = new WP_Recovery_Mode_Cookie_Service();
+		$this->link_service   = new WP_Recovery_Mode_Link_Service( $this->cookie_service );
+		$this->email_service  = new WP_Recovery_Mode_Email_Service( $this->link_service );
 	}
 
 	/**
@@ -81,13 +81,13 @@ class WP_Recovery_Mode {
 			return;
 		}
 
-		if ( $this->cookies->is_cookie_set() ) {
+		if ( $this->cookie_service->is_cookie_set() ) {
 			$this->handle_cookie();
 
 			return;
 		}
 
-		$this->link_handler->handle_begin_link( $this->cookies, $this->get_link_ttl() );
+		$this->link_service->handle_begin_link( $this->get_link_ttl() );
 	}
 
 	/**
@@ -140,7 +140,7 @@ class WP_Recovery_Mode {
 				require_once ABSPATH . WPINC . '/pluggable.php';
 			}
 
-			return $this->email->maybe_send_recovery_mode_email( $this->link_handler, $this->get_email_rate_limit(), $error, $extension );
+			return $this->email_service->maybe_send_recovery_mode_email( $this->get_email_rate_limit(), $error, $extension );
 		}
 
 		if ( ! $this->store_error( $error ) ) {
@@ -166,8 +166,8 @@ class WP_Recovery_Mode {
 			return false;
 		}
 
-		$this->email->clear_rate_limit();
-		$this->cookies->clear_cookie();
+		$this->email_service->clear_rate_limit();
+		$this->cookie_service->clear_cookie();
 
 		wp_paused_plugins()->delete_all();
 		wp_paused_themes()->delete_all();
@@ -215,16 +215,16 @@ class WP_Recovery_Mode {
 	 * @since 5.2.0
 	 */
 	protected function handle_cookie() {
-		$validated = $this->cookies->validate_cookie();
+		$validated = $this->cookie_service->validate_cookie();
 
 		if ( is_wp_error( $validated ) ) {
-			$this->cookies->clear_cookie();
+			$this->cookie_service->clear_cookie();
 
 			wp_die( $validated, '' );
 		}
 
 		$this->is_active  = true;
-		$this->session_id = $this->cookies->get_session_id_from_cookie();
+		$this->session_id = $this->cookie_service->get_session_id_from_cookie();
 	}
 
 	/**
@@ -280,8 +280,8 @@ class WP_Recovery_Mode {
 	 * @param array  $error Error that was triggered.
 	 *
 	 * @return array|false {
-	 * @type string  $slug  The extension slug. This is the plugin or theme's directory.
-	 * @type string  $type  The extension type. Either 'plugin' or 'theme'.
+	 *      @type string  $slug  The extension slug. This is the plugin or theme's directory.
+	 *      @type string  $type  The extension type. Either 'plugin' or 'theme'.
 	 * }
 	 */
 	protected function get_extension_for_error( $error ) {
