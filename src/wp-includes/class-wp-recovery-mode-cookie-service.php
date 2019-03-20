@@ -173,7 +173,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 	public function get_session_id_from_cookie( $cookie = '' ) {
 		if ( ! $cookie ) {
 			if ( empty( $_COOKIE[ $this->name ] ) ) {
-				return new WP_Error( 'no_cookie' );
+				return new WP_Error( 'no_cookie', __( 'No cookie present.' ) );
 			}
 
 			$cookie = $_COOKIE[ $this->name ];
