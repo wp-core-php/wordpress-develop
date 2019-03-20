@@ -390,7 +390,7 @@ if ( $action ) {
 			break;
 
 		case 'resume':
-			if ( is_multisite() && is_network_admin() ) {
+			if ( is_multisite() ) {
 				return;
 			}
 
