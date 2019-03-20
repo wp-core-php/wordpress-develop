@@ -858,13 +858,10 @@ function paused_themes_notice() {
 	}
 
 	printf(
-		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p>%s</p></div>',
+		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
 		__( 'One or more themes failed to load properly.' ),
 		__( 'You can find more details and make changes on the Themes screen.' ),
-		sprintf(
-			'<a href="%s">%s</a>',
-			admin_url( 'themes.php' ),
-			__( 'Go to the Themes screen' )
-		)
+		esc_url( admin_url( 'themes.php' ) ),
+		__( 'Go to the Themes screen' )
 	);
 }

@@ -2224,13 +2224,10 @@ function paused_plugins_notice() {
 	}
 
 	printf(
-		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p>%s</p></div>',
+		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
 		__( 'One or more plugins failed to load properly.' ),
 		__( 'You can find more details and make changes on the Plugins screen.' ),
-		sprintf(
-			'<a href="%s">%s</a>',
-			admin_url( 'plugins.php?plugin_status=paused' ),
-			__( 'Go to the Plugins screen' )
-		)
+		esc_url( admin_url( 'plugins.php?plugin_status=paused' ) ),
+		__( 'Go to the Plugins screen' )
 	);
 }
