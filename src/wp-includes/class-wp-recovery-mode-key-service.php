@@ -44,7 +44,7 @@ final class WP_Recovery_Mode_Key_Service {
 
 		$hashed = $wp_hasher->HashPassword( $key );
 
-		update_site_option( 'recovery_key', array(
+		update_option( 'recovery_key', array(
 			'hashed_key' => $hashed,
 			'created_at' => time(),
 		) );
@@ -64,7 +64,7 @@ final class WP_Recovery_Mode_Key_Service {
 	 */
 	public function validate_recovery_mode_key( $key, $ttl ) {
 
-		$record = get_site_option( 'recovery_key' );
+		$record = get_option( 'recovery_key' );
 
 		if ( ! $record ) {
 			return new WP_Error( 'no_recovery_key_set', __( 'Recovery Mode not initialized.' ) );

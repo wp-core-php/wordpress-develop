@@ -32,10 +32,10 @@ final class WP_Recovery_Mode_Email_Service {
 	 */
 	public function maybe_send_recovery_mode_email( WP_Recovery_Mode_Link_Service $link_service, $rate_limit, $error, $extension ) {
 
-		$last_sent = get_site_option( self::RATE_LIMIT_OPTION );
+		$last_sent = get_option( self::RATE_LIMIT_OPTION );
 
 		if ( ! $last_sent || time() > $last_sent + $rate_limit ) {
-			if ( ! update_site_option( self::RATE_LIMIT_OPTION, time() ) ) {
+			if ( ! update_option( self::RATE_LIMIT_OPTION, time() ) ) {
 				return new WP_Error( 'storage_error',	__( 'Could not update the email last sent time.' ) );
 			}
 
@@ -66,7 +66,7 @@ final class WP_Recovery_Mode_Email_Service {
 	 * @return bool
 	 */
 	public function clear_rate_limit() {
-		return delete_site_option( self::RATE_LIMIT_OPTION );
+		return delete_option( self::RATE_LIMIT_OPTION );
 	}
 
 	/**
