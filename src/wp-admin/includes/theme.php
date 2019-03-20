@@ -864,7 +864,7 @@ function paused_themes_notice() {
 		sprintf(
 			'<a href="%s">%s</a>',
 			admin_url( 'themes.php' ),
-			'Go to the Themes screen'
+			__( 'Go to the Themes screen' )
 		)
 	);
 }

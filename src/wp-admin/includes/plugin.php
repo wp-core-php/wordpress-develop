@@ -2230,7 +2230,7 @@ function paused_plugins_notice() {
 		sprintf(
 			'<a href="%s">%s</a>',
 			admin_url( 'plugins.php?plugin_status=paused' ),
-			'Go to the Plugins screen'
+			__( 'Go to the Plugins screen' )
 		)
 	);
 }
