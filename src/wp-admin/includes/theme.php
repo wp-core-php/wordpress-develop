@@ -819,14 +819,50 @@ function wp_get_theme_error( $theme ) {
 /**
  * Tries to resume a single theme.
  *
+ * If a redirect was provided and a functions.php file was found, we first ensure that
+ * functions.php file does not throw fatal errors anymore.
+ *
+ * The way it works is by setting the redirection to the error before trying to
+ * include the file. If the theme fails, then the redirection will not be overwritten
+ * with the success message and the theme will not be resumed.
+ *
  * @since 5.2.0
  *
- * @param string $theme Single theme to resume.
+ * @param string $theme    Single theme to resume.
+ * @param string $redirect Optional. URL to redirect to. Default empty string.
  * @return bool|WP_Error True on success, false if `$theme` was not paused,
  *                       `WP_Error` on failure.
  */
-function resume_theme( $theme ) {
+function resume_theme( $theme, $redirect = '' ) {
 	list( $extension ) = explode( '/', $theme );
+
+	/*
+	 * We'll override this later if the theme could be resumed without
+	 * creating a fatal error.
+	 */
+	if ( ! empty( $redirect ) ) {
+		$functions_path = '';
+		if ( strpos( STYLESHEETPATH, $extension ) ) {
+			$functions_path = STYLESHEETPATH . '/functions.php';
+		} elseif ( strpos( TEMPLATEPATH, $extension ) ) {
+			$functions_path = TEMPLATEPATH . '/functions.php';
+		}
+
+		if ( ! empty( $functions_path ) ) {
+			wp_redirect(
+				add_query_arg(
+					'_error_nonce',
+					wp_create_nonce( 'theme-resume-error_' . $theme ),
+					$redirect
+				)
+			);
+
+			// Load the plugin to test whether it throws a fatal error.
+			ob_start();
+			include $functions_path;
+			ob_clean();
+		}
+	}
 
 	$result = wp_paused_themes()->delete( $extension );
 

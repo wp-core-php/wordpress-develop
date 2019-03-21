@@ -2174,7 +2174,7 @@ function wp_get_plugin_error( $plugin ) {
  */
 function resume_plugin( $plugin, $redirect = '' ) {
 	/*
-	 * We'll override this later if the plugin could be included without
+	 * We'll override this later if the plugin could be resumed without
 	 * creating a fatal error.
 	 */
 	if ( ! empty( $redirect ) ) {

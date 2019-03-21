@@ -45,7 +45,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 			);
 		}
 
-		$result = resume_theme( $theme->get_stylesheet() );
+		$result = resume_theme( $theme->get_stylesheet(), self_admin_url( 'themes.php?error=resuming' ) );
 
 		if ( is_wp_error( $result ) ) {
 			wp_die( $result );
@@ -218,6 +218,10 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 } elseif ( isset( $_GET['resumed'] ) ) {
 	?>
 	<div id="message5" class="updated notice is-dismissible"><p><?php _e( 'Theme resumed.' ); ?></p></div>
+	<?php
+} elseif ( isset( $_GET['error'] ) && 'resuming' === $_GET['error'] ) {
+	?>
+	<div id="message6" class="error"><p><?php _e( 'Theme could not be resumed because it triggered a <strong>fatal error</strong>.' ); ?></p></div>
 	<?php
 }
 
