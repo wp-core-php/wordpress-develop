@@ -53,7 +53,7 @@ class WP_Recovery_Mode {
 	 * @since 5.2.0
 	 * @var string
 	 */
-	private $session_id = false;
+	private $session_id = '';
 
 	/**
 	 * WP_Recovery_Mode constructor.
@@ -91,13 +91,13 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * Is recovery mode active.
+	 * Checks whether recovery mode is active.
 	 *
 	 * This will not change after recovery mode has been initialized. {@see WP_Recovery_Mode::run()}.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return bool
+	 * @return bool True if recovery mode is active, false otherwise.
 	 */
 	public function is_active() {
 		return $this->is_active;
@@ -108,21 +108,20 @@ class WP_Recovery_Mode {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return string|false The session ID if recovery mode is active, false otherwise.
+	 * @return string The session ID if recovery mode is active, empty string otherwise.
 	 */
 	public function get_session_id() {
 		return $this->session_id;
 	}
 
 	/**
-	 * Handle a fatal error occurring.
+	 * Handles a fatal error occurring.
 	 *
 	 * The calling API should immediately die() after calling this function.
 	 *
 	 * @since 5.2.0
 	 *
 	 * @param array $error Error details from {@see error_get_last()}
-	 *
 	 * @return true|WP_Error True if the error was handled and headers have already been sent.
 	 *                       Or the request will exit to try and catch multiple errors at once.
 	 *                       WP_Error if an error occurred preventing it from being handled.
@@ -159,7 +158,7 @@ class WP_Recovery_Mode {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return bool
+	 * @return bool True on success, false on failure.
 	 */
 	public function exit_recovery_mode() {
 		if ( ! $this->is_active() ) {
@@ -223,8 +222,15 @@ class WP_Recovery_Mode {
 			wp_die( $validated, '' );
 		}
 
+		$session_id = $this->cookie_service->get_session_id_from_cookie();
+		if ( is_wp_error( $session_id ) ) {
+			$this->cookie_service->clear_cookie();
+
+			wp_die( $session_id, '' );
+		}
+
 		$this->is_active  = true;
-		$this->session_id = $this->cookie_service->get_session_id_from_cookie();
+		$this->session_id = $session_id;
 	}
 
 	/**
@@ -335,9 +341,8 @@ class WP_Recovery_Mode {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array $extension
-	 *
-	 * @return bool
+	 * @param array $extension Extension data.
+	 * @return bool True if network plugin, false otherwise.
 	 */
 	protected function is_network_plugin( $extension ) {
 		if ( 'plugin' !== $extension['type'] ) {
@@ -365,7 +370,6 @@ class WP_Recovery_Mode {
 	 * @since 5.2.0
 	 *
 	 * @param array $error Error that was triggered.
-	 *
 	 * @return bool True if the error was stored successfully, false otherwise.
 	 */
 	protected function store_error( $error ) {

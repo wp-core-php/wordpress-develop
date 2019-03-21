@@ -171,7 +171,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 	 * @param string $cookie Optionally specify the cookie string.
 	 *                       If omitted, it will be retrieved from the super global.
 	 *
-	 * @return string|WP_Error
+	 * @return string|WP_Error Session ID on success, or error object on failure.
 	 */
 	public function get_session_id_from_cookie( $cookie = '' ) {
 		if ( ! $cookie ) {
