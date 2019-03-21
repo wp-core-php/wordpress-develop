@@ -76,15 +76,12 @@ class WP_Fatal_Error_Handler {
 	 * Determines whether we are dealing with an error that WordPress should handle
 	 * in order to protect the admin backend against WSODs.
 	 *
-	 * @param array $error Error information retrieved from error_get_last().
+	 * @since 5.2.0
 	 *
+	 * @param array $error Error information retrieved from error_get_last().
 	 * @return bool Whether WordPress should handle this error.
 	 */
 	protected function should_handle_error( $error ) {
-		if ( ! isset( $error['type'] ) ) {
-			return false;
-		}
-
 		$error_types_to_handle = array(
 			E_ERROR,
 			E_PARSE,
@@ -93,7 +90,23 @@ class WP_Fatal_Error_Handler {
 			E_RECOVERABLE_ERROR,
 		);
 
-		return in_array( $error['type'], $error_types_to_handle, true );
+		if ( isset( $error['type'] ) && in_array( $error['type'], $error_types_to_handle, true ) ) {
+			return true;
+		}
+
+		/**
+		 * Filters whether a given thrown error should be handled by the fatal error handler.
+		 *
+		 * This filter is only fired if the error is not already configured to be handled by WordPress core. As such,
+		 * it exclusively allows adding further rules for which errors should be handled, but not removing existing
+		 * ones.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param bool  $should_handle_error Whether the error should be handled by the fatal error handler.
+		 * @param array $error               Error information retrieved from error_get_last().
+		 */
+		return (bool) apply_filters( 'wp_should_handle_php_error', false, $error );
 	}
 
 	/**
