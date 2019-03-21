@@ -857,7 +857,7 @@ function resume_theme( $theme, $redirect = '' ) {
 				)
 			);
 
-			// Load the plugin to test whether it throws a fatal error.
+			// Load the theme's functions.php to test whether it throws a fatal error.
 			ob_start();
 			include $functions_path;
 			ob_clean();
