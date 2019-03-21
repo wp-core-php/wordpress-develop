@@ -104,7 +104,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * Get the recovery mode session ID.
+	 * Gets the recovery mode session ID.
 	 *
 	 * @since 5.2.0
 	 *
@@ -154,7 +154,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * End the current recovery mode session.
+	 * Ends the current recovery mode session.
 	 *
 	 * @since 5.2.0
 	 *
@@ -175,7 +175,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * Handle a request to exit Recovery Mode.
+	 * Handles a request to exit Recovery Mode.
 	 *
 	 * @since 5.2.0
 	 */
@@ -209,7 +209,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * Handle checking for the recovery mode cookie and validating it.
+	 * Handles checking for the recovery mode cookie and validating it.
 	 *
 	 * @since 5.2.0
 	 */
@@ -234,7 +234,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * The rate limit between sending new recovery mode email links.
+	 * Gets the rate limit between sending new recovery mode email links.
 	 *
 	 * @since 5.2.0
 	 *
@@ -252,7 +252,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * Get the number of seconds the recovery mode link is valid for.
+	 * Gets the number of seconds the recovery mode link is valid for.
 	 *
 	 * @since 5.2.0
 	 *
@@ -278,7 +278,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * Get the extension that the error occurred in.
+	 * Gets the extension that the error occurred in.
 	 *
 	 * @since 5.2.0
 	 *
@@ -337,7 +337,7 @@ class WP_Recovery_Mode {
 	}
 
 	/**
-	 * Is the given extension a network activated plugin.
+	 * Checks whether the given extension a network activated plugin.
 	 *
 	 * @since 5.2.0
 	 *

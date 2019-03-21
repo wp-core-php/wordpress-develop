@@ -34,6 +34,8 @@ class WP_Recovery_Mode_Link_Service {
 	/**
 	 * WP_Recovery_Mode_Link_Service constructor.
 	 *
+	 * @since 5.2.0
+	 *
 	 * @param WP_Recovery_Mode_Cookie_Service $cookie_service Service to handle setting the recovery mode cookie.
 	 */
 	public function __construct( WP_Recovery_Mode_Cookie_Service $cookie_service ) {
@@ -42,13 +44,13 @@ class WP_Recovery_Mode_Link_Service {
 	}
 
 	/**
-	 * Generate a URL to begin recovery mode.
+	 * Generates a URL to begin recovery mode.
 	 *
 	 * Only one recovery mode URL can may be valid at the same time.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return string
+	 * @return string Generated URL.
 	 */
 	public function generate_url() {
 		$key = $this->key_service->generate_and_store_recovery_mode_key();
@@ -57,7 +59,7 @@ class WP_Recovery_Mode_Link_Service {
 	}
 
 	/**
-	 * Enter recovery mode when the user hits wp-login.php with a valid recovery mode link.
+	 * Enters recovery mode when the user hits wp-login.php with a valid recovery mode link.
 	 *
 	 * @since 5.2.0
 	 *
@@ -90,13 +92,12 @@ class WP_Recovery_Mode_Link_Service {
 	}
 
 	/**
-	 * Get a URL to begin recovery mode.
+	 * Gets a URL to begin recovery mode.
 	 *
 	 * @since 5.2.0
 	 *
 	 * @param string $key Recovery Mode key created by {@see generate_and_store_recovery_mode_key()}
-	 *
-	 * @return string
+	 * @return string Recovery mode begin URL.
 	 */
 	private function get_recovery_mode_begin_url( $key ) {
 

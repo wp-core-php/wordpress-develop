@@ -48,7 +48,16 @@ final class WP_Recovery_Mode_Cookie_Service {
 	/**
 	 * WP_Recovery_Mode_Cookie_Service constructor.
 	 *
-	 * @param array $opts
+	 * @since 5.2.0
+	 *
+	 * @param array $opts {
+	 *     Recovery mode cookie options.
+	 *
+	 *     @type string $name      Cookie name.
+	 *     @type string $domain    Cookie domain.
+	 *     @type string $path      Cookie path.
+	 *     @type string $site_path Site cookie path.
+	 * }
 	 */
 	public function __construct( array $opts = array() ) {
 		$opts = wp_parse_args(
@@ -68,18 +77,18 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
-	 * Is the recovery mode cookie set.
+	 * Checks whether the recovery mode cookie is set.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return bool
+	 * @return bool True if the cookie is set, false otherwise.
 	 */
 	public function is_cookie_set() {
 		return ! empty( $_COOKIE[ $this->name ] );
 	}
 
 	/**
-	 * Set the recovery mode cookie.
+	 * Sets the recovery mode cookie.
 	 *
 	 * This must be immediately followed by exiting the request.
 	 *
@@ -97,9 +106,9 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
-	 * Clear the recovery mode cookie.
+	 * Clears the recovery mode cookie.
 	 *
-	 * @sicne 5.2.0
+	 * @since 5.2.0
 	 */
 	public function clear_cookie() {
 		setcookie( $this->name, ' ', time() - YEAR_IN_SECONDS, $this->path, $this->domain );
@@ -107,14 +116,13 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
-	 * Validate the recovery mode cookie.
+	 * Validates the recovery mode cookie.
 	 *
 	 * @since 5.2.0
 	 *
 	 * @param string $cookie Optionally specify the cookie string.
 	 *                       If omitted, it will be retrieved from the super global.
-	 *
-	 * @return true|WP_Error
+	 * @return true|WP_Error True on success, error object on failure.
 	 */
 	public function validate_cookie( $cookie = '' ) {
 
@@ -162,7 +170,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
-	 * Get the session identifier from the cookie.
+	 * Gets the session identifier from the cookie.
 	 *
 	 * The cookie should be validated before calling this API.
 	 *
@@ -170,7 +178,6 @@ final class WP_Recovery_Mode_Cookie_Service {
 	 *
 	 * @param string $cookie Optionally specify the cookie string.
 	 *                       If omitted, it will be retrieved from the super global.
-	 *
 	 * @return string|WP_Error Session ID on success, or error object on failure.
 	 */
 	public function get_session_id_from_cookie( $cookie = '' ) {
@@ -193,11 +200,10 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
-	 * Parse the cookie into its four parts.
+	 * Parses the cookie into its four parts.
 	 *
-	 * @param string $cookie
-	 *
-	 * @return string[]|WP_Error
+	 * @param string $cookie Cookie content.
+	 * @return array|WP_Error Cookie parts array, or error object on failure.
 	 */
 	private function parse_cookie( $cookie ) {
 		$cookie = base64_decode( $cookie );
@@ -211,7 +217,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
-	 * Generate the recovery mode cookie value.
+	 * Generates the recovery mode cookie value.
 	 *
 	 * The cookie is a base64 encoded string with the following format:
 	 *
@@ -224,7 +230,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return string
+	 * @return string Generated cookie content.
 	 */
 	private function generate_cookie() {
 		$to_sign = sprintf( 'recovery_mode|%s|%s', time(), wp_generate_password( 20, false ) );
@@ -234,19 +240,19 @@ final class WP_Recovery_Mode_Cookie_Service {
 	}
 
 	/**
-	 * A form of `wp_hash()` specific to Recovery Mode.
+	 * Gets a form of `wp_hash()` specific to Recovery Mode.
 	 *
 	 * We cannot use `wp_hash()` because it is defined in `pluggable.php` which is not loaded until after plugins are loaded,
 	 * which is too late to verify the recovery mode cookie.
 	 *
 	 * This tries to use the `AUTH` salts first, but if they aren't valid specific salts will be generated and stored.
 	 *
-	 * @param string $data
+	 * @since 5.2.0
 	 *
-	 * @return string|false
+	 * @param string $data Data to hash.
+	 * @return string|false The hashed $data, or false on failure.
 	 */
 	private function recovery_mode_hash( $data ) {
-
 		if ( ! defined( 'AUTH_KEY' ) || AUTH_KEY === 'put your unique phrase here' ) {
 			$auth_key = get_site_option( 'recovery_mode_auth_key' );
 

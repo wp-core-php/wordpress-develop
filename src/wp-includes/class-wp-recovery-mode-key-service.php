@@ -14,7 +14,7 @@
 final class WP_Recovery_Mode_Key_Service {
 
 	/**
-	 * Create a recovery mode key.
+	 * Creates a recovery mode key.
 	 *
 	 * @since 5.2.0
 	 *
@@ -56,14 +56,13 @@ final class WP_Recovery_Mode_Key_Service {
 	}
 
 	/**
-	 * Verify if the recovery mode key is correct.
+	 * Verifies if the recovery mode key is correct.
 	 *
 	 * @since 5.2.0
 	 *
 	 * @param string $key The unhashed key.
 	 * @param int    $ttl Time in seconds for the key to be valid for.
-	 *
-	 * @return true|WP_Error
+	 * @return true|WP_Error True on success, error object on failure.
 	 */
 	public function validate_recovery_mode_key( $key, $ttl ) {
 
