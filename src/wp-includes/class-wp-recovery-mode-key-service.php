@@ -44,10 +44,13 @@ final class WP_Recovery_Mode_Key_Service {
 
 		$hashed = $wp_hasher->HashPassword( $key );
 
-		update_option( 'recovery_key', array(
-			'hashed_key' => $hashed,
-			'created_at' => time(),
-		) );
+		update_option(
+			'recovery_key',
+			array(
+				'hashed_key' => $hashed,
+				'created_at' => time(),
+			)
+		);
 
 		return $key;
 	}

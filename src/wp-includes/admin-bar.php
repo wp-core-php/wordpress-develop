@@ -1055,8 +1055,7 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar
  */
 function wp_admin_bar_recovery_mode_menu( $wp_admin_bar ) {
-
-	if ( ! wp_recovery_mode()->is_active() ) {
+	if ( ! wp_is_recovery_mode() ) {
 		return;
 	}
 
@@ -1071,7 +1070,7 @@ function wp_admin_bar_recovery_mode_menu( $wp_admin_bar ) {
 			'title'  => __( 'Exit Recovery Mode' ),
 			'href'   => $url,
 			'meta'   => array(
-				'title' => __( 'Exit Recovery Mode' )
+				'title' => __( 'Exit Recovery Mode' ),
 			),
 		)
 	);

@@ -254,7 +254,8 @@ class WP_Recovery_Mode {
 	 */
 	protected function get_link_ttl() {
 
-		$rate_limit = $valid_for = $this->get_email_rate_limit();
+		$rate_limit = $this->get_email_rate_limit();
+		$valid_for  = $rate_limit;
 
 		/**
 		 * Filter the amount of time the recovery mode email link is valid for.
@@ -302,7 +303,10 @@ class WP_Recovery_Mode {
 			$path  = str_replace( $wp_plugin_dir . '/', '', $error_file );
 			$parts = explode( '/', $path );
 
-			return array( 'type' => 'plugin', 'slug' => $parts[0] );
+			return array(
+				'type' => 'plugin',
+				'slug' => $parts[0],
+			);
 		}
 
 		if ( empty( $wp_theme_directories ) ) {
@@ -316,7 +320,10 @@ class WP_Recovery_Mode {
 				$path  = str_replace( $theme_directory . '/', '', $error_file );
 				$parts = explode( '/', $path );
 
-				return array( 'type' => 'theme', 'slug' => $parts[0] );
+				return array(
+					'type' => 'theme',
+					'slug' => $parts[0],
+				);
 			}
 		}
 

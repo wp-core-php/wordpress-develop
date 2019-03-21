@@ -51,12 +51,15 @@ final class WP_Recovery_Mode_Cookie_Service {
 	 * @param array $opts
 	 */
 	public function __construct( array $opts = array() ) {
-		$opts = wp_parse_args( $opts, array(
-			'name'      => RECOVERY_MODE_COOKIE,
-			'domain'    => COOKIE_DOMAIN,
-			'path'      => COOKIEPATH,
-			'site_path' => SITECOOKIEPATH,
-		) );
+		$opts = wp_parse_args(
+			$opts,
+			array(
+				'name'      => RECOVERY_MODE_COOKIE,
+				'domain'    => COOKIE_DOMAIN,
+				'path'      => COOKIEPATH,
+				'site_path' => SITECOOKIEPATH,
+			)
+		);
 
 		$this->name      = $opts['name'];
 		$this->domain    = $opts['domain'];
@@ -244,7 +247,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 	 */
 	private function recovery_mode_hash( $data ) {
 
-		if ( ! defined( 'AUTH_KEY' ) || 'put your unique phrase here' === AUTH_KEY ) {
+		if ( ! defined( 'AUTH_KEY' ) || AUTH_KEY === 'put your unique phrase here' ) {
 			$auth_key = get_site_option( 'recovery_mode_auth_key' );
 
 			if ( ! $auth_key ) {
@@ -259,7 +262,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 			$auth_key = AUTH_KEY;
 		}
 
-		if ( ! defined( 'AUTH_SALT' ) || 'put your unique phrase here' === AUTH_SALT || $auth_key === AUTH_SALT ) {
+		if ( ! defined( 'AUTH_SALT' ) || AUTH_SALT === 'put your unique phrase here' || AUTH_SALT === $auth_key ) {
 			$auth_salt = get_site_option( 'recovery_mode_auth_salt' );
 
 			if ( ! $auth_salt ) {

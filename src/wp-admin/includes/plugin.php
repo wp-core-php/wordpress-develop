@@ -2193,6 +2193,7 @@ function resume_plugin( $plugin, $redirect = '' ) {
 	}
 
 	list( $extension ) = explode( '/', $plugin );
+
 	$result = wp_paused_plugins()->delete( $extension );
 
 	if ( ! $result ) {

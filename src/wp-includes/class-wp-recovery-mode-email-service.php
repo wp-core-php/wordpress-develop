@@ -28,7 +28,8 @@ final class WP_Recovery_Mode_Email_Service {
 	 *
 	 * @param WP_Recovery_Mode_Link_Service $link_service
 	 */
-	public function __construct( WP_Recovery_Mode_Link_Service $link_service ) { $this->link_service = $link_service; }
+	public function __construct( WP_Recovery_Mode_Link_Service $link_service ) {
+		$this->link_service = $link_service; }
 
 	/**
 	 * Send the recovery mode email if the rate limit has not been sent.
@@ -50,7 +51,7 @@ final class WP_Recovery_Mode_Email_Service {
 
 		if ( ! $last_sent || time() > $last_sent + $rate_limit ) {
 			if ( ! update_option( self::RATE_LIMIT_OPTION, time() ) ) {
-				return new WP_Error( 'storage_error',	__( 'Could not update the email last sent time.' ) );
+				return new WP_Error( 'storage_error', __( 'Could not update the email last sent time.' ) );
 			}
 
 			$sent = $this->send_recovery_mode_email( $rate_limit, $error, $extension );
@@ -63,7 +64,7 @@ final class WP_Recovery_Mode_Email_Service {
 		}
 
 		$err_message = sprintf(
-		/* translators: 1. Last sent as a human time diff 2. Wait time as a human time diff. */
+			/* translators: 1. Last sent as a human time diff 2. Wait time as a human time diff. */
 			__( 'A recovery link was already sent %1$s ago. Please wait another %2$s before requesting a new email.' ),
 			human_time_diff( $last_sent ),
 			human_time_diff( $last_sent + $rate_limit )
@@ -96,7 +97,7 @@ final class WP_Recovery_Mode_Email_Service {
 	 */
 	private function send_recovery_mode_email( $rate_limit, $error, $extension ) {
 
-		$url = $this->link_service->generate_url();
+		$url      = $this->link_service->generate_url();
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 		$switched_locale = false;
@@ -115,7 +116,8 @@ final class WP_Recovery_Mode_Email_Service {
 				$details = "\n\n" . $header . "\n" . str_pad( '', strlen( $header ), '=' ) . "\n" . $details;
 			}
 		} else {
-			$cause = $details = '';
+			$cause   = '';
+			$details = '';
 		}
 
 		$message = __(
@@ -150,6 +152,7 @@ This link expires in ###EXPIRES###.
 
 		$email = array(
 			'to'      => $this->get_recovery_mode_email_address(),
+			/* translators: %s: site name */
 			'subject' => __( '[%s] Your Site is Experiencing a Technical Issue' ),
 			'message' => $message,
 			'headers' => '',
@@ -210,24 +213,33 @@ This link expires in ###EXPIRES###.
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 
-			$names = array();
+			$plugins = get_plugins();
 
-			foreach ( get_plugins() as $file => $plugin ) {
-				if ( 0 === strpos( $file, "{$extension['slug']}/" ) ) {
-					$names[] = $plugin['Name'];
+			$name = '';
+
+			// Assume plugin main file name first since it is a common convention.
+			if ( isset( $plugins[ "{$extension['slug']}/{$extension['slug']}.php" ] ) ) {
+				$name = $plugins[ "{$extension['slug']}/{$extension['slug']}.php" ]['Name'];
+			} else {
+				foreach ( $plugins as $file => $plugin_data ) {
+					if ( 0 === strpos( $file, "{$extension['slug']}/" ) ) {
+						$name = $plugin_data['Name'];
+						break;
+					}
 				}
 			}
 
-			if ( ! $names ) {
-				$names[] = $extension['slug'];
+			if ( empty( $name ) ) {
+				$name = $extension['slug'];
 			}
 
-			// Multiple plugins can technically be in the same directory.
-			$cause = wp_sprintf( _n( 'This was caused by the %l plugin.', 'This was be caused by the %l plugins.', count( $names ) ), $names );
+			/* translators: %s: plugin name */
+			$cause = sprintf( __( 'This was be caused by the %s plugin.' ), $name );
 		} else {
 			$theme = wp_get_theme( $extension['slug'] );
 			$name  = $theme->exists() ? $theme->display( 'Name' ) : $extension['slug'];
 
+			/* translators: %s: theme name */
 			$cause = sprintf( __( 'This was be caused by the %s theme.' ), $name );
 		}
 
