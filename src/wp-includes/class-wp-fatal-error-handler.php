@@ -38,7 +38,7 @@ class WP_Fatal_Error_Handler {
 				return;
 			}
 
-			if ( ! is_multisite() ) {
+			if ( ! is_multisite() && wp_recovery_mode()->is_initialized() ) {
 				wp_recovery_mode()->handle_error( $error );
 			}
 
