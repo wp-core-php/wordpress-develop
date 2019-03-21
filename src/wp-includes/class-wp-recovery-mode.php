@@ -65,6 +65,8 @@ class WP_Recovery_Mode {
 
 	/**
 	 * WP_Recovery_Mode constructor.
+	 *
+	 * @since 5.2.0
 	 */
 	public function __construct() {
 		$this->cookie_service = new WP_Recovery_Mode_Cookie_Service();
@@ -76,8 +78,6 @@ class WP_Recovery_Mode {
 	 * Initialize recovery mode for the current request.
 	 *
 	 * @since 5.2.0
-	 *
-	 * @return void
 	 */
 	public function initialize() {
 		$this->is_initialized = true;
