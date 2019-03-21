@@ -26,7 +26,7 @@ final class WP_Recovery_Mode_Key_Service {
 
 		global $wp_hasher;
 
-		$key = wp_generate_password( 20, false );
+		$key = wp_generate_password( 22, false );
 
 		/**
 		 * Fires when a recovery mode key is generated for a user.
