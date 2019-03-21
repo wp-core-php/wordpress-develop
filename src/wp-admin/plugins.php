@@ -400,7 +400,7 @@ if ( $action ) {
 
 			check_admin_referer( 'resume-plugin_' . $plugin );
 
-			$result = resume_plugin( $plugin, self_admin_url( 'plugins.php?error=resuming' ) );
+			$result = resume_plugin( $plugin, self_admin_url( "plugins.php?error=resuming&plugin_status=$status&paged=$page&s=$s" ) );
 
 			if ( is_wp_error( $result ) ) {
 				wp_die( $result );
