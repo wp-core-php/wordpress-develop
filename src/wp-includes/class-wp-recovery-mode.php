@@ -40,6 +40,14 @@ class WP_Recovery_Mode {
 	private $cookie_service;
 
 	/**
+	 * Is recovery mode initialized.
+	 *
+	 * @since 5.2.0
+	 * @var bool
+	 */
+	private $is_initialized = false;
+
+	/**
 	 * Is recovery mode active in this session.
 	 *
 	 * @since 5.2.0
@@ -72,6 +80,8 @@ class WP_Recovery_Mode {
 	 * @return void
 	 */
 	public function initialize() {
+		$this->is_initialized = true;
+
 		add_action( 'login_form_' . self::EXIT_ACTION, array( $this, 'handle_exit_recovery_mode' ) );
 
 		if ( defined( 'WP_RECOVERY_MODE_SESSION_ID' ) ) {
@@ -112,6 +122,19 @@ class WP_Recovery_Mode {
 	 */
 	public function get_session_id() {
 		return $this->session_id;
+	}
+
+	/**
+	 * Checks whether recovery mode has been initialized.
+	 *
+	 * Recovery mode should not be used until this point. Initialization happens immediately before loading plugins.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return bool
+	 */
+	public function is_initialized() {
+		return $this->is_initialized;
 	}
 
 	/**
