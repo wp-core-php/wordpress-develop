@@ -1030,7 +1030,7 @@ switch ( $action ) {
 			} elseif ( strpos( $redirect_to, 'about.php?updated' ) ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
 			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
-				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please login to continue.' ), 'message' );
+				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
 			}
 		}
 
