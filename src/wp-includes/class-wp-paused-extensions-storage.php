@@ -209,10 +209,15 @@ class WP_Paused_Extensions_Storage {
 	 * @return string
 	 */
 	protected function get_option_name() {
-		if ( ! wp_recovery_mode()->is_active() || ! wp_recovery_mode()->get_session_id() ) {
+		if ( ! wp_recovery_mode()->is_active() ) {
 			return '';
 		}
 
-		return wp_recovery_mode()->get_session_id() . '_paused_extensions';
+		$session_id = wp_recovery_mode()->get_session_id();
+		if ( empty( $session_id ) ) {
+			return '';
+		}
+
+		return "{$session_id}_paused_extensions";
 	}
 }
