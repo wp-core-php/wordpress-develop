@@ -101,6 +101,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'remove_users'           => array( 'administrator' ),
 			'switch_themes'          => array( 'administrator' ),
 			'edit_dashboard'         => array( 'administrator' ),
+			'resume_plugins'         => array( 'administrator' ),
+			'resume_themes'          => array( 'administrator' ),
 
 			'moderate_comments'      => array( 'administrator', 'editor' ),
 			'manage_categories'      => array( 'administrator', 'editor' ),
@@ -181,6 +183,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'remove_users'           => array( 'administrator' ),
 			'switch_themes'          => array( 'administrator' ),
 			'edit_dashboard'         => array( 'administrator' ),
+			'resume_plugins'         => array( 'administrator' ),
+			'resume_themes'          => array( 'administrator' ),
 
 			'moderate_comments'      => array( 'administrator', 'editor' ),
 			'manage_categories'      => array( 'administrator', 'editor' ),
@@ -257,8 +261,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'export_others_personal_data' => array( 'administrator' ),
 			'erase_others_personal_data'  => array( 'administrator' ),
 			'manage_privacy_options'      => array( 'administrator' ),
-			'resume_plugins'              => array( 'administrator' ),
-			'resume_themes'               => array( 'administrator' ),
 
 			'edit_categories'             => array( 'administrator', 'editor' ),
 			'delete_categories'           => array( 'administrator', 'editor' ),
@@ -298,8 +300,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'customize'                   => array( 'administrator' ),
 			'delete_site'                 => array( 'administrator' ),
 			'add_users'                   => array( 'administrator' ),
-			'resume_plugins'              => array( 'administrator' ),
-			'resume_themes'               => array( 'administrator' ),
 
 			'edit_categories'             => array( 'administrator', 'editor' ),
 			'delete_categories'           => array( 'administrator', 'editor' ),
@@ -396,7 +396,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$actual['editor'],
 			$actual['author'],
 			$actual['subscriber'],
-			$actual['contributor']
+			$actual['contributor'],
+			// the following two are granted via `user_has_cap`:
+			$actual['resume_plugins'],
+			$actual['resume_themes']
 		);
 
 		unset(
