@@ -19,6 +19,11 @@ define( 'WPINC', 'wp-includes' );
 require( ABSPATH . WPINC . '/load.php' );
 require( ABSPATH . WPINC . '/class-wp-paused-extensions-storage.php' );
 require( ABSPATH . WPINC . '/class-wp-fatal-error-handler.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-cookie-service.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-key-service.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-link-service.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode-email-service.php' );
+require( ABSPATH . WPINC . '/class-wp-recovery-mode.php' );
 require( ABSPATH . WPINC . '/error-protection.php' );
 require( ABSPATH . WPINC . '/default-constants.php' );
 require_once( ABSPATH . WPINC . '/plugin.php' );
@@ -267,11 +272,6 @@ require( ABSPATH . WPINC . '/blocks/rss.php' );
 require( ABSPATH . WPINC . '/blocks/search.php' );
 require( ABSPATH . WPINC . '/blocks/shortcode.php' );
 require( ABSPATH . WPINC . '/blocks/tag-cloud.php' );
-require( ABSPATH . WPINC . '/class-wp-recovery-mode-cookie-service.php' );
-require( ABSPATH . WPINC . '/class-wp-recovery-mode-key-service.php' );
-require( ABSPATH . WPINC . '/class-wp-recovery-mode-link-service.php' );
-require( ABSPATH . WPINC . '/class-wp-recovery-mode-email-service.php' );
-require( ABSPATH . WPINC . '/class-wp-recovery-mode.php' );
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
