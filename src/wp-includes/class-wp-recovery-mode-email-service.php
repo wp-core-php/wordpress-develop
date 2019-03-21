@@ -150,7 +150,7 @@ This link expires in ###EXPIRES###.
 
 		$email = array(
 			'to'      => $this->get_recovery_mode_email_address(),
-			'subject' => __( '[%s] Your Site Experienced an Issue' ),
+			'subject' => __( '[%s] Your Site is Experiencing a Technical Issue' ),
 			'message' => $message,
 			'headers' => '',
 		);
